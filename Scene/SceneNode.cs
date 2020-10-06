@@ -79,6 +79,34 @@ namespace Weary.Scene
             return tree.GetParentOf(uuid);
         }
 
+        public SceneNode GetNode(string friendlyName)
+        {
+            bool isAbsolute = friendlyName.StartsWith('/');
+            if (isAbsolute)
+            {
+                friendlyName = friendlyName.Remove(0, 1);
+                return tree.root.GetNode(friendlyName);
+            }
+            
+            string[] pathParts = friendlyName.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (pathParts.Length < 1)
+                return null; //empty path, cant search on that
+            
+            List<SceneNode> children = GetChildren();
+            
+            foreach (SceneNode child in children)
+            {
+                if (child.name == pathParts[0])
+                {
+                    if (pathParts.Length == 1)
+                        return child;
+                    else
+                        return child.GetNode(string.Join('/', pathParts, 1, pathParts.Length - 1));
+                }
+            }
+            return null;
+        }
+
         public void Free()
         {
             tree.FreeNode(uuid);
@@ -89,10 +117,10 @@ namespace Weary.Scene
             tree.QueueFreeNode(uuid);
         }
 
-        internal void Update(DeltaTime delta)
+        internal protected virtual void Update(DeltaTime delta)
         {}
 
-        internal void FixedUpdate(DeltaTime delta)
+        internal protected virtual void FixedUpdate(DeltaTime delta)
         {}
     }
 }
