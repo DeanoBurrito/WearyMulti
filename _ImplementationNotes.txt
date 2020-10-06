@@ -1,0 +1,2 @@
+---- NOTES ----
+If game is using SceneMainLoop, then current tree can be viewed with F1, using arrow keys to navigate around.

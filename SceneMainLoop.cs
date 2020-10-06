@@ -13,7 +13,7 @@ namespace Weary
         protected override void Init()
         {
             tree = new SceneTree();
-            visualizer = new TreeVisualizer(null);
+            visualizer = new TreeVisualizer(tree);
         }
 
         protected override void Deinit()
