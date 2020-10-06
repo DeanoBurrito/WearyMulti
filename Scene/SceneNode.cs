@@ -9,15 +9,18 @@ namespace Weary.Scene
         internal readonly SceneTree tree;
         public string name = "";
         public NodeUpdatePolicy updatePolicy = NodeUpdatePolicy.FollowParent;
+        public readonly bool isComponent;
 
         internal List<ulong> children = new List<ulong>();
         internal ulong parent = 0;
 
-        internal SceneNode(SceneTree tree = null)
+        internal SceneNode(SceneTree tree = null, bool isComp = false)
         {
             this.tree = (tree == null ? SceneTree.GetCurrent() : tree);
             this.uuid = this.tree.GenerateUuid();
             this.tree.allNodes.Add(uuid, this);
+
+            this.isComponent = isComp;
         }
 
         public abstract void FromBytes(byte[] data);
@@ -32,6 +35,8 @@ namespace Weary.Scene
 
         public void AddChild(SceneNode node)
         {
+            if (isComponent)
+                return;
             if (node == null)
             {
                 Log.WriteError("Cannot add child node is null.");
@@ -54,6 +59,8 @@ namespace Weary.Scene
 
         public void RemoveChild(SceneNode node)
         {
+            if (isComponent)
+                return;
             if (node == null)
             {
                 Log.WriteError("Cannot remove a null child.");
@@ -81,13 +88,16 @@ namespace Weary.Scene
 
         public SceneNode GetNode(string friendlyName)
         {
+            if (isComponent)
+                return null;
+
             bool isAbsolute = friendlyName.StartsWith('/');
             if (isAbsolute)
             {
                 friendlyName = friendlyName.Remove(0, 1);
                 return tree.root.GetNode(friendlyName);
             }
-            
+
             string[] pathParts = friendlyName.Split('/', StringSplitOptions.RemoveEmptyEntries);
             if (pathParts.Length < 1)
                 return null; //empty path, cant search on that
@@ -117,10 +127,10 @@ namespace Weary.Scene
             tree.QueueFreeNode(uuid);
         }
 
-        internal protected virtual void Update(DeltaTime delta)
+        public virtual void Update(DeltaTime delta)
         {}
 
-        internal protected virtual void FixedUpdate(DeltaTime delta)
+        public virtual void FixedUpdate(DeltaTime delta)
         {}
     }
 }

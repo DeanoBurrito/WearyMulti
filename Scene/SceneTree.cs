@@ -46,6 +46,9 @@ namespace Weary.Scene
         {
             //update root node, this will walk the tree and update anything that needs to be, while respect update policies.
             UpdateNode(delta, false, root.uuid);
+
+            //TODO: implement fixed/non-fixed update cycles
+            UpdateNode(delta, true, root.uuid);
             
             HandleFreeRequests();
         }
@@ -58,6 +61,8 @@ namespace Weary.Scene
         public List<SceneNode> GetChildrenOf(ulong uuid)
         {
             if (!allNodes.ContainsKey(uuid))
+                return null;
+            if (allNodes[uuid].isComponent)
                 return null;
 
             List<SceneNode> children = new List<SceneNode>();
