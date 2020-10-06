@@ -5,6 +5,8 @@ namespace Weary
 {
     public static class Log
     {
+        public static bool breakOnError = true;
+        
         public static void WriteLine(string message)
         {
             Console.WriteLine("[LOG] " + message);
@@ -12,9 +14,13 @@ namespace Weary
 
         public static void WriteError(string message)
         {
+            
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("[ERROR] " + message);
             Console.ResetColor();
+
+            if (breakOnError)
+                System.Diagnostics.Debugger.Break();
         }
 
         public static void FatalError(string message)
