@@ -86,6 +86,11 @@ namespace Weary.Scene
             return null;
         }
 
+        public SceneNode GetNode(string path)
+        {
+            return root.GetNode(path);
+        }
+
         public SceneNode GetNode(ulong uuid)
         {
             if (!allNodes.ContainsKey(uuid))
