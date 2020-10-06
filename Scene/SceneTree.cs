@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Weary.Scene
 {
@@ -10,13 +11,78 @@ namespace Weary.Scene
         public readonly SceneNode root;
         internal Dictionary<ulong, SceneNode> allNodes = new Dictionary<ulong, SceneNode>();
 
-        private ulong highestUuid = 1; //0 will always be free, and mean null
+        private ulong highestUuid = 0;
         private Queue<ulong> freeUuids = new Queue<ulong>();
         private List<ulong> nodeFreeQueue = new List<ulong>();
 
         public static SceneTree LoadJson(string jsonFile)
-        {
-            throw new NotImplementedException();
+        {  
+            SceneTree localTree = new SceneTree();
+            JsonDocument jdoc = JsonDocument.Parse(jsonFile);
+            JsonElement jdocRoot = jdoc.RootElement;
+
+            if (jdocRoot.TryGetProperty("HighestUuid", out JsonElement newHighestProperty) 
+                && newHighestProperty.TryGetUInt64(out ulong newHighestUuid))
+            {
+                localTree.highestUuid = newHighestUuid;
+            }
+
+            if (jdocRoot.TryGetProperty("FreeUuids", out JsonElement newFreedUuidsProperty) 
+                && newFreedUuidsProperty.GetArrayLength() > 0)
+            {
+                Queue<ulong> newFreeds = new Queue<ulong>();
+                foreach (JsonElement freedProp in newFreedUuidsProperty.EnumerateArray())
+                {
+                    newFreeds.Enqueue(freedProp.GetUInt64());
+                }
+                localTree.freeUuids = newFreeds;
+            }
+
+            if (jdocRoot.TryGetProperty("Nodes", out JsonElement nodesProperty))
+            {
+                foreach (JsonElement element in nodesProperty.EnumerateArray())
+                {
+                    LoadNodeJson(localTree, element);
+                }
+            }
+
+            foreach (SceneNode node in localTree.allNodes.Values)
+            {
+                if (node == localTree.root)
+                    continue;
+                
+                if (!localTree.allNodes.ContainsKey(node.parent))
+                {
+                    Log.WriteError("Could not parent SceneNode, parent id not found in tree, removing node.");
+                    localTree.FreeNode(node.uuid);
+                    continue;
+                }
+
+                SceneNode parent = localTree.allNodes[node.parent];
+                parent.children.Add(node.uuid);
+            }
+
+            return localTree;
+        }
+
+        private static void LoadNodeJson(SceneTree tree, JsonElement nodeElement)
+        {   
+            ulong uuid = 0;
+            bool isComponent = false;
+            if (nodeElement.TryGetProperty("UUID", out JsonElement idElement) &&
+                nodeElement.TryGetProperty("IsComponent", out JsonElement isCompElement))
+            {
+                uuid = idElement.GetUInt64();
+                isComponent = isCompElement.GetBoolean();
+            }
+            else
+            {
+                Log.WriteError("Could not loaded SceneNode, UUID/IsComponent missing. Skipping node (note this may cause further failures in tree).");
+                return;
+            }
+            
+            SceneNode node = new SceneNode(tree, uuid, isComponent);
+            node.FromJson(nodeElement);
         }
 
         public static string SaveJson(SceneTree instance)
@@ -35,11 +101,8 @@ namespace Weary.Scene
         {
             current = this;
 
-            root = new ExampleNode();
+            root = new SceneNode(this);
             root.name = "Root";
-            root.AddChild(new ExampleNode() { name = "Child1" });
-            root.AddChild(new ExampleNode() { name = "Child2" });
-            root.GetChildren()[0].AddChild(new ExampleNode() { name = "SubChild1" });
         }
 
         public void Update(DeltaTime delta)

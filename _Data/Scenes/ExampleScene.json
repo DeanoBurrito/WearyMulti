@@ -1,0 +1,30 @@
+{
+    "HighestUuid" : 8,
+    "FreedUuids" : [ 4, 5, 6, 7 ],
+    "Nodes" :
+    [
+        {
+            "UUID" : 2,
+            "Name" : "Child_1",
+            "Parent" : 1,
+            "UpdatePolicy" : 0,
+            "IsComponent" : false
+        },
+        {
+            "UUID" : 3,
+            "Name" : "Child_2",
+            "Parent" : 1,
+            "UpdatePolicy" : 0,
+            "IsComponent" : false
+        },
+        {
+            "UUID" : 8,
+            "Name" : "SubChild_1",
+            "Parent" : 2,
+            "UpdatePolicy" : 0,
+            "IsComponent" : false,
+            "SomeCustomData" : "StringDataHere",
+            "ExtraCustomData" : false
+        }
+    ]
+}

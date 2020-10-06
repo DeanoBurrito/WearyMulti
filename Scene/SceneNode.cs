@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 namespace Weary.Scene
 {
-    public abstract class SceneNode
+    public class SceneNode
     {
         public readonly ulong uuid;
         internal readonly SceneTree tree;
@@ -23,10 +25,44 @@ namespace Weary.Scene
             this.isComponent = isComp;
         }
 
-        public abstract void FromBytes(byte[] data);
-        public abstract byte[] ToBytes();
-        public abstract void FromJson(string data);
-        public abstract string ToJson();
+        internal SceneNode(SceneTree tree, ulong id, bool isComp = false)
+        {
+            isComponent = isComp;
+            uuid = id;
+            this.tree = tree;
+            this.tree.allNodes.Add(uuid, this);
+        }
+
+        public virtual void FromBytes(byte[] data)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public virtual byte[] ToBytes()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FromJson(JsonElement data)
+        {
+            if (data.TryGetProperty("Parent", out JsonElement parentProp))
+            {
+                parent = parentProp.GetUInt64();
+            }
+            if (data.TryGetProperty("Name", out JsonElement nameProp))
+            {
+                name = nameProp.GetString();
+            }
+            if (data.TryGetProperty("UpdatePolicy", out JsonElement updatePolicyProp))
+            {
+                updatePolicy = (NodeUpdatePolicy)updatePolicyProp.GetByte();
+            }
+        }
+
+        public virtual JsonElement ToJson()
+        {
+            throw new NotImplementedException();
+        }
 
         public List<SceneNode> GetChildren()
         {

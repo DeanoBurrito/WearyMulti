@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using SFML.Graphics;
 using Weary.Scene;
 
@@ -12,7 +13,8 @@ namespace Weary
         
         protected override void Init()
         {
-            tree = new SceneTree();
+            string jsonData = File.ReadAllText("_Data/Scenes/ExampleScene.json");
+            tree = SceneTree.LoadJson(jsonData);
             visualizer = new TreeVisualizer(tree);
         }
 
