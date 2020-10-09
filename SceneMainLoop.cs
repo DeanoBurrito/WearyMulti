@@ -14,7 +14,7 @@ namespace Weary
         protected override void Init()
         {
             string jsonData = File.ReadAllText("_Data/Scenes/ExampleScene.json");
-            tree = SceneTree.LoadJson(jsonData);
+            tree = SceneTree.LoadFromJson(jsonData);
             visualizer = new TreeVisualizer(tree);
         }
 

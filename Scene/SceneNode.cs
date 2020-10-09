@@ -59,9 +59,13 @@ namespace Weary.Scene
             }
         }
 
-        public virtual JsonElement ToJson()
+        public virtual void ToJson(Utf8JsonWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteNumber("UUID", uuid);
+            writer.WriteBoolean("IsComponent", isComponent);
+            writer.WriteNumber("Parent", parent);
+            writer.WriteString("Name", name);
+            writer.WriteNumber("UpdatePolicy", (byte)updatePolicy);
         }
 
         public List<SceneNode> GetChildren()

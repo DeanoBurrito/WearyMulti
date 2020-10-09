@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 
 namespace Weary.Scene
@@ -15,7 +16,7 @@ namespace Weary.Scene
         private Queue<ulong> freeUuids = new Queue<ulong>();
         private List<ulong> nodeFreeQueue = new List<ulong>();
 
-        public static SceneTree LoadJson(string jsonFile)
+        public static SceneTree LoadFromJson(string jsonFile)
         {  
             SceneTree localTree = new SceneTree();
             JsonDocument jdoc = JsonDocument.Parse(jsonFile);
@@ -85,9 +86,37 @@ namespace Weary.Scene
             node.FromJson(nodeElement);
         }
 
-        public static string SaveJson(SceneTree instance)
+        public static string SaveToJson(SceneTree instance)
         {
-            throw new NotImplementedException();
+            string rtnData;
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(memoryStream))
+                {
+                    writer.WriteStartObject();
+                    writer.WriteNumber("HighestUuid", instance.highestUuid);
+                    
+                    writer.WriteStartArray("FreedUuids");
+                    foreach (ulong freeId in instance.freeUuids)
+                        writer.WriteNumberValue(freeId);
+                    writer.WriteEndArray();
+
+                    writer.WriteStartArray("Nodes");
+                    foreach (SceneNode node in instance.allNodes.Values)
+                    {
+                        writer.WriteStartObject();
+                        node.ToJson(writer);
+                        writer.WriteEndObject();
+                    }
+                    writer.WriteEndArray();
+
+                    writer.WriteEndObject();
+                    writer.Flush();
+                }
+                rtnData = System.Text.Encoding.UTF8.GetString(memoryStream.GetBuffer(), 0, (int)memoryStream.Length);
+            }
+            
+            return rtnData;
         }
 
         internal static SceneTree GetCurrent()
