@@ -25,6 +25,11 @@ namespace Weary
         {
             if (Input.IsKeyReleased("F1"))
                 renderVisualizer = !renderVisualizer;
+            if (Input.IsKeyReleased("F2"))
+            {
+                string jsonData = SceneTree.SaveToJson(tree);
+                File.WriteAllText("_Data/Scenes/SavedDebugScene.json", jsonData);
+            }
             
             if (renderVisualizer)
                 visualizer.Update(delta);

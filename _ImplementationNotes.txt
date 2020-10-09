@@ -1,4 +1,5 @@
 ---- NOTES ----
 If game is using SceneMainLoop, then current tree can be viewed with F1, using arrow keys to navigate around.
+F2 will save the current scene (as it is in the current frame) to disk under _data/Scenes/SavedDebugScene.json.
 
 When overriding SceneNode, be sure to call base.To*()/base.From*() in order to read header data, otherwise node construction will not be complete
