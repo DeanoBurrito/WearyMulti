@@ -34,7 +34,7 @@ namespace Weary
 
         public void Exit()
         {
-            keepRunning = false;
+            HandleExitInternal(window, EventArgs.Empty);
         }
 
         protected virtual void Init()
