@@ -32,6 +32,11 @@ namespace Weary
             DeinitInternal();
         }
 
+        public void Exit()
+        {
+            keepRunning = false;
+        }
+
         protected virtual void Init()
         {}
 

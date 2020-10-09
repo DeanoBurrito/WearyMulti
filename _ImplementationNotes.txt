@@ -1,2 +1,4 @@
 ---- NOTES ----
 If game is using SceneMainLoop, then current tree can be viewed with F1, using arrow keys to navigate around.
+
+When overriding SceneNode, be sure to call base.To*()/base.From*() in order to read header data, otherwise node construction will not be complete
