@@ -29,6 +29,8 @@ namespace Weary.Debug
         private float lineHeight = 24f;
         private uint textFontSize = 16;
 
+        private int maxLogDequeueChunk = 100; //max number of log messages to read in a single frame, creates logging incoherency (only in terminal) but prevents infinite loops
+
         private float cursorHeight = 18f;
         private bool cursorVisible = false;
         private int cursorFlashMs = 333;
@@ -36,10 +38,11 @@ namespace Weary.Debug
 
         internal DebugTerminal()
         {
+            BuiltInCommands.Init();
             textFont = new Font("_Data/Fonts/NotoSans_Regular.ttf");
 
-            Log.OnWriteLine += (string msg) => { unreadLogOutput.Enqueue(msg); };
-            Log.OnWriteError += (string msg) => { unreadLogOutput.Enqueue(msg); };
+            Log.OnWriteLine += (string msg) => { unreadLogOutput.Enqueue("[LOG] " + msg); };
+            Log.OnWriteError += (string msg) => { unreadLogOutput.Enqueue("[ERROR] " + msg); };
         }
 
         public void Update(DeltaTime delta)
@@ -89,16 +92,19 @@ namespace Weary.Debug
             int historyShowEnd = terminalHistory.Count;
 
             Text textLine = new Text("", textFont, textFontSize);
-            textLine.FillColor = Color.White;
-
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
                 textLine.DisplayedString = terminalHistory[i];
                 textLine.Position = new Vector2f(2f, i * lineHeight);
+                if (terminalHistory[i].Contains("[ERROR]"))
+                    textLine.FillColor = Color.Red;
+                else
+                    textLine.FillColor = Color.White;
                 target.Draw(textLine);
             }
 
             float currentLineY = background.Size.Y - (lineHeight * 1.2f);
+            textLine.FillColor = Color.White;
             textLine.Position = new Vector2f(2f, currentLineY);
             textLine.DisplayedString = ">>> " + currentLine.ToString();
             target.Draw(textLine);
@@ -129,9 +135,8 @@ namespace Weary.Debug
 
         private void UpdateTerminalHistory()
         {
-            int maxTryDequeue = 100; //dont endlessly try to dequeue, since we could end up in an infinite loop. This reduces coherency with log output, but I think it's worth it.
             int currIndex = 0;
-            while (currIndex < maxTryDequeue && unreadLogOutput.TryDequeue(out string readLog))
+            while (currIndex < maxLogDequeueChunk && unreadLogOutput.TryDequeue(out string readLog))
             {
                 terminalHistory.Add(readLog);
                 currIndex++;
@@ -157,6 +162,29 @@ namespace Weary.Debug
             else
             {
                 Log.WriteError("Command not found: " + parts[0]);
+            }
+        }
+
+        private static class BuiltInCommands
+        {
+            public static void Init()
+            {
+                RegisterCommand("help", Help);
+            }
+
+            public static void Help(string[] args)
+            {
+                Log.WriteLine(commands.Count + " commands available. Listed below: ");
+                foreach (string s in commands.Keys)
+                {
+                    Log.WriteLine(s.PadRight(20) + " -");
+                }
+            }
+
+            public static void Echo(string[] args)
+            {
+                string result = string.Join(' ', args);
+                Log.WriteLine(result);
             }
         }
     }
