@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using SFML.Graphics;
 using Weary.Scene;
+using Weary.Scene.ObjectDB;
 
-namespace Weary
+namespace Weary.Scene
 {
     public class SceneMainLoop : MainLoop
     {
@@ -13,6 +14,8 @@ namespace Weary
         
         protected override void Init()
         {
+            ObjectDatabase.ScanAndPopulate();
+            
             string jsonData = File.ReadAllText("_Data/Scenes/ExampleScene.json");
             tree = SceneTree.LoadFromJson(jsonData);
             visualizer = new TreeVisualizer(tree);

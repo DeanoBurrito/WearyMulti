@@ -6,7 +6,7 @@ namespace Weary
     {
         static void Main(string[] args)
         {
-            SceneMainLoop loop = new SceneMainLoop();
+            Scene.SceneMainLoop loop = new Scene.SceneMainLoop();
             loop.Run();
         }
     }
