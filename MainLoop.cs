@@ -1,6 +1,7 @@
 using System;
 using SFML.Window;
 using SFML.Graphics;
+using Weary.Debug;
 
 namespace Weary
 {
@@ -9,7 +10,8 @@ namespace Weary
         private readonly float fixedUpdateStep = 1f / 60f;
         private bool keepRunning = true;
         private RenderWindow window;
-        
+        private DebugTerminal debugTerminal;
+
         public MainLoop()
         {}
 
@@ -23,7 +25,7 @@ namespace Weary
 
                 UpdateInternal(delta);
                 FixedUpdate(delta);
-                Draw(window);
+                RenderInternal(window);
 
                 //TODO: hack, fix this
                 System.Threading.Thread.Sleep((int)(fixedUpdateStep * 1000f));
@@ -47,6 +49,9 @@ namespace Weary
             window = new RenderWindow(new VideoMode(1600, 900), "Weary", Styles.Close);
             window.Closed += HandleExitInternal;
 
+            debugTerminal = new DebugTerminal();
+            window.TextEntered += debugTerminal.HandleWindowTextEntered;
+
             Init();
         }
 
@@ -67,6 +72,7 @@ namespace Weary
         {
             window.DispatchEvents();
             Input.Update(delta);
+            debugTerminal.Update(delta);
             
             Update(delta);
         }
@@ -74,7 +80,17 @@ namespace Weary
         protected virtual void FixedUpdate(DeltaTime delta)
         {}
 
-        protected virtual void Draw(RenderWindow window)
+        private void RenderInternal(RenderWindow window)
+        {   
+            window.Clear(Color.Black);
+
+            Render(window);
+            debugTerminal.Render(window);
+
+            window.Display();
+        }
+
+        protected virtual void Render(RenderWindow window)
         {}
 
         protected virtual void HandleExitRequest()

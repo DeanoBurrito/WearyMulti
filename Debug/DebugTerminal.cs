@@ -1,0 +1,163 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Text;
+using SFML.System;
+using SFML.Window;
+using SFML.Graphics;
+
+namespace Weary.Debug
+{
+    public sealed class DebugTerminal
+    {
+        private static Dictionary<string, DebugCommand> commands = new Dictionary<string, DebugCommand>();
+
+        public static void RegisterCommand(string identifier, Action<string[]> callback)
+        {
+            identifier = identifier.ToLower();
+            commands.TryAdd(identifier, new DebugCommand(identifier, callback));
+        }
+
+        private Font textFont;
+        private StringBuilder currentLine = new StringBuilder();
+        private bool isVisible = false;
+
+        private ConcurrentQueue<string> unreadLogOutput = new ConcurrentQueue<string>();
+        private List<string> terminalHistory = new List<string>();
+        private int maxHistoryLength = 2048;
+
+        private float lineHeight = 24f;
+        private uint textFontSize = 16;
+
+        private float cursorHeight = 18f;
+        private bool cursorVisible = false;
+        private int cursorFlashMs = 333;
+        private int cursorFlashTimer = 0;
+
+        internal DebugTerminal()
+        {
+            textFont = new Font("_Data/Fonts/NotoSans_Regular.ttf");
+
+            Log.OnWriteLine += (string msg) => { unreadLogOutput.Enqueue(msg); };
+            Log.OnWriteError += (string msg) => { unreadLogOutput.Enqueue(msg); };
+        }
+
+        public void Update(DeltaTime delta)
+        {
+            UpdateTerminalHistory();
+
+            if (Input.IsKeyReleased("F10"))
+                isVisible = !isVisible;
+
+            if (!isVisible)
+                return;
+
+            if (Input.IsKeyPressed("Return"))
+            {
+                HandleCommand(currentLine.ToString());
+                currentLine.Clear();
+            }
+            else if (Input.IsKeyPressed("Backspace"))
+            {
+                if (currentLine.Length > 0)
+                    currentLine = currentLine.Remove(currentLine.Length - 1, 1);
+            }
+
+            cursorFlashTimer -= delta.milliseconds;
+            if (cursorFlashTimer <= 0)
+            {
+                cursorFlashTimer = cursorFlashMs;
+                cursorVisible = !cursorVisible;
+            }
+        }
+
+        public void Render(RenderTarget target)
+        {
+            if (!isVisible)
+                return;
+
+            RectangleShape background = new RectangleShape();
+            background.FillColor = new Color(20, 20, 20);
+            background.Position = new Vector2f(0f, 0f);
+            background.Size = new Vector2f(target.Size.X, target.Size.Y / 2f);
+            target.Draw(background);
+
+            float historyDrawableHeight = background.Size.Y - (lineHeight * 2f);
+            int historyShowStart = terminalHistory.Count - (int)(historyDrawableHeight / lineHeight);
+            if (historyShowStart < 0)
+                historyShowStart = 0;
+            int historyShowEnd = terminalHistory.Count;
+
+            Text textLine = new Text("", textFont, textFontSize);
+            textLine.FillColor = Color.White;
+
+            for (int i = historyShowStart; i < historyShowEnd; i++)
+            {
+                textLine.DisplayedString = terminalHistory[i];
+                textLine.Position = new Vector2f(2f, i * lineHeight);
+                target.Draw(textLine);
+            }
+
+            float currentLineY = background.Size.Y - (lineHeight * 1.2f);
+            textLine.Position = new Vector2f(2f, currentLineY);
+            textLine.DisplayedString = ">>> " + currentLine.ToString();
+            target.Draw(textLine);
+
+            if (cursorVisible)
+            {
+                RectangleShape cursorRect = new RectangleShape();
+                cursorRect.FillColor = Color.White;
+                cursorRect.Position = new Vector2f(textLine.GetLocalBounds().Width + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
+                cursorRect.Size = new Vector2f(2f, cursorHeight);
+                target.Draw(cursorRect);
+            }
+        }
+
+        internal void HandleWindowTextEntered(object sender, TextEventArgs e)
+        {
+            if (!isVisible)
+                return;
+            if (e.Unicode.Length != 1)
+                return;
+
+            char character = e.Unicode[0];
+            if (char.IsLetterOrDigit(character)
+                || character == '.' || character == '-'
+                || character == '/' || character == ' ')
+                currentLine.Append(character);
+        }
+
+        private void UpdateTerminalHistory()
+        {
+            int maxTryDequeue = 100; //dont endlessly try to dequeue, since we could end up in an infinite loop. This reduces coherency with log output, but I think it's worth it.
+            int currIndex = 0;
+            while (currIndex < maxTryDequeue && unreadLogOutput.TryDequeue(out string readLog))
+            {
+                terminalHistory.Add(readLog);
+                currIndex++;
+            }
+
+            if (terminalHistory.Count > maxHistoryLength)
+                terminalHistory.RemoveRange(0, terminalHistory.Count - maxHistoryLength);
+        }
+
+        private void HandleCommand(string input)
+        {
+            string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 1)
+                return;
+
+            parts[0] = parts[0].ToLower();
+            if (commands.ContainsKey(parts[0]))
+            {
+                string[] args = new string[parts.Length - 1];
+                Array.Copy(parts, 1, args, 0, args.Length);
+                commands[parts[0]].callback.Invoke(args);
+            }
+            else
+            {
+                Log.WriteError("Command not found: " + parts[0]);
+            }
+        }
+    }
+}

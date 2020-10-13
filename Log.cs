@@ -5,7 +5,7 @@ namespace Weary
 {
     public static class Log
     {
-        public static bool breakOnError = true;
+        public static bool breakOnError = false;
         public static event Action<string> OnWriteLine;
         public static event Action<string> OnWriteError;
         

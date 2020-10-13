@@ -35,14 +35,10 @@ namespace Weary
                 visualizer.Update(delta);
         }
 
-        protected override void Draw(RenderWindow window)
+        protected override void Render(RenderWindow window)
         {
-            window.Clear();
-
             if (renderVisualizer)
                 visualizer.Render(window);
-            
-            window.Display();
         }
 
         protected override void HandleExitRequest()
