@@ -6,10 +6,13 @@ namespace Weary
     public static class Log
     {
         public static bool breakOnError = true;
+        public static event Action<string> OnWriteLine;
+        public static event Action<string> OnWriteError;
         
         public static void WriteLine(string message)
         {
             Console.WriteLine("[LOG] " + message);
+            OnWriteLine?.Invoke(message);
         }
 
         public static void WriteError(string message)
@@ -18,6 +21,8 @@ namespace Weary
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("[ERROR] " + message);
             Console.ResetColor();
+
+            OnWriteError?.Invoke(message);
 
             if (breakOnError)
                 System.Diagnostics.Debugger.Break();
