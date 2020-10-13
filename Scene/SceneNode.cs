@@ -19,7 +19,7 @@ namespace Weary.Scene
         internal SceneNode(SceneTree tree = null, bool isComp = false)
         {
             this.tree = (tree == null ? SceneTree.GetCurrent() : tree);
-            this.uuid = this.tree.GenerateUuid();
+            this.uuid = this.tree.uuidManager.GenerateId();
             this.tree.allNodes.Add(uuid, this);
 
             this.isComponent = isComp;

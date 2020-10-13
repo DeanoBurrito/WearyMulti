@@ -12,8 +12,7 @@ namespace Weary.Scene
         public readonly SceneNode root;
         internal Dictionary<ulong, SceneNode> allNodes = new Dictionary<ulong, SceneNode>();
 
-        private ulong highestUuid = 0;
-        private Queue<ulong> freeUuids = new Queue<ulong>();
+        internal UuidManager uuidManager = new UuidManager();
         private List<ulong> nodeFreeQueue = new List<ulong>();
 
         public static SceneTree LoadFromJson(string jsonFile)
@@ -22,22 +21,24 @@ namespace Weary.Scene
             JsonDocument jdoc = JsonDocument.Parse(jsonFile);
             JsonElement jdocRoot = jdoc.RootElement;
 
+            ulong? highestId = null;
             if (jdocRoot.TryGetProperty("HighestUuid", out JsonElement newHighestProperty) 
                 && newHighestProperty.TryGetUInt64(out ulong newHighestUuid))
             {
-                localTree.highestUuid = newHighestUuid;
+                
+                highestId = newHighestUuid;
             }
 
+            Queue<ulong> newFreeds = new Queue<ulong>();
             if (jdocRoot.TryGetProperty("FreeUuids", out JsonElement newFreedUuidsProperty) 
                 && newFreedUuidsProperty.GetArrayLength() > 0)
             {
-                Queue<ulong> newFreeds = new Queue<ulong>();
                 foreach (JsonElement freedProp in newFreedUuidsProperty.EnumerateArray())
                 {
                     newFreeds.Enqueue(freedProp.GetUInt64());
                 }
-                localTree.freeUuids = newFreeds;
             }
+            localTree.uuidManager = new UuidManager(highestId, newFreeds);
 
             if (jdocRoot.TryGetProperty("Nodes", out JsonElement nodesProperty))
             {
@@ -94,10 +95,10 @@ namespace Weary.Scene
                 using (Utf8JsonWriter writer = new Utf8JsonWriter(memoryStream))
                 {
                     writer.WriteStartObject();
-                    writer.WriteNumber("HighestUuid", instance.highestUuid);
+                    writer.WriteNumber("HighestUuid", instance.uuidManager.GetInternals().highest);
                     
                     writer.WriteStartArray("FreedUuids");
-                    foreach (ulong freeId in instance.freeUuids)
+                    foreach (ulong freeId in instance.uuidManager.GetInternals().freed)
                         writer.WriteNumberValue(freeId);
                     writer.WriteEndArray();
 
@@ -195,33 +196,6 @@ namespace Weary.Scene
             return allNodes[uuid];
         }
 
-        internal ulong GenerateUuid()
-        {
-            ulong rtnId = highestUuid + 1;
-            if (freeUuids.Count > 0)
-            {
-                rtnId = freeUuids.Dequeue();
-            }
-            else
-            {
-                highestUuid++;
-            }
-            return rtnId;
-        }
-
-        internal void FreeUuid(ulong uuid)
-        {
-            if (uuid == highestUuid)
-            {
-                highestUuid--;
-                return;
-            }
-            else
-            {
-                freeUuids.Enqueue(uuid);
-            }
-        }
-
         internal void QueueFreeNode(ulong uuid)
         {
             if (!nodeFreeQueue.Contains(uuid))
@@ -248,6 +222,8 @@ namespace Weary.Scene
             {
                 allNodes[node.parent].children.Remove(uuid);
             }
+            
+            uuidManager.FreeId(uuid);
         }
 
         private void HandleFreeRequests()
