@@ -30,6 +30,7 @@ namespace Weary.Debug
         private uint textFontSize = 16;
 
         private int maxLogDequeueChunk = 100; //max number of log messages to read in a single frame, creates logging incoherency (only in terminal) but prevents infinite loops
+        private int scrollOffset = 0;
 
         private float cursorHeight = 18f;
         private bool cursorVisible = false;
@@ -55,15 +56,29 @@ namespace Weary.Debug
             if (!isVisible)
                 return;
 
-            if (Input.IsKeyPressed("Return"))
+            if (Input.IsKeyReleased("Return"))
             {
                 HandleCommand(currentLine.ToString());
                 currentLine.Clear();
             }
-            else if (Input.IsKeyPressed("Backspace"))
+            else if (Input.IsKeyReleased("Backspace"))
             {
                 if (currentLine.Length > 0)
                     currentLine = currentLine.Remove(currentLine.Length - 1, 1);
+            }
+
+            int scrollMod = Input.IsKeyDown("LShift") ? 5 : 1;
+            if (Input.IsKeyReleased("Down"))
+            {
+                scrollOffset -= scrollMod;
+                if (scrollOffset < 0)
+                    scrollOffset = 0;
+            }
+            else if (Input.IsKeyReleased("Up"))
+            {
+                scrollOffset += scrollMod;
+                if (scrollOffset >= terminalHistory.Count)
+                    scrollOffset = terminalHistory.Count - 1;
             }
 
             cursorFlashTimer -= delta.milliseconds;
@@ -86,10 +101,13 @@ namespace Weary.Debug
             target.Draw(background);
 
             float historyDrawableHeight = background.Size.Y - (lineHeight * 2f);
-            int historyShowStart = terminalHistory.Count - (int)(historyDrawableHeight / lineHeight);
+            int historyShowStart = terminalHistory.Count - (int)(historyDrawableHeight / lineHeight) - scrollOffset;
             if (historyShowStart < 0)
                 historyShowStart = 0;
-            int historyShowEnd = terminalHistory.Count;
+
+            int historyShowEnd = historyShowStart + (int)(historyDrawableHeight / lineHeight);
+            if (historyShowEnd > terminalHistory.Count)
+                historyShowEnd = terminalHistory.Count;
 
             Text textLine = new Text("", textFont, textFontSize);
             for (int i = historyShowStart; i < historyShowEnd; i++)
