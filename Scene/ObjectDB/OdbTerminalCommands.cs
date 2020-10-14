@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Weary.Debug;
 
 namespace Weary.Scene.ObjectDB
 {
@@ -7,10 +8,10 @@ namespace Weary.Scene.ObjectDB
     {
         internal static void RegisterCommands()
         {
-            Debug.DebugTerminal.RegisterCommand("lsdb", "Displays the current contents of the ObjectDB.", LsDb);
-            Debug.DebugTerminal.RegisterCommand("lsobj", "Displays details on a specific OdbObject.", LsObj);
-            Debug.DebugTerminal.RegisterCommand("get", "Gets a field value using it's name and instance reference on scenetree.", GetField);
-            Debug.DebugTerminal.RegisterCommand("set", "Sets a field value using it's name, instance reference and new value.", SetField);
+            DebugTerminal.RegisterCommand("lsdb", "Displays the current contents of the ObjectDB.", LsDb);
+            DebugTerminal.RegisterCommand("lsobj", "Displays details on a specific OdbObject.", LsObj);
+            DebugTerminal.RegisterCommand("get", "Gets a field value using it's name and instance reference on scenetree.", GetField);
+            DebugTerminal.RegisterCommand("set", "Sets a field value using it's name, instance reference and new value.", SetField);
         }
 
         public static void LsDb(string[] args)
@@ -131,7 +132,7 @@ namespace Weary.Scene.ObjectDB
             string objectName = instanceRef.GetType().Name;
             objectName = objectName.Remove(0, objectName.LastIndexOf('.') + 1);
             ObjectDatabase.Global.SetField(objectName, args[0], instanceRef, args[2]);
-            
+
             Log.WriteLine(args[1] + "." + args[0] + ": value=" + args[2]);
         }
     }
