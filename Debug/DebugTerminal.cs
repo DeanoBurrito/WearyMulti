@@ -12,10 +12,10 @@ namespace Weary.Debug
     {
         private static Dictionary<string, DebugCommand> commands = new Dictionary<string, DebugCommand>();
 
-        public static void RegisterCommand(string identifier, Action<string[]> callback)
+        public static void RegisterCommand(string identifier, string helpText, Action<string[]> callback)
         {
             identifier = identifier.ToLower();
-            commands.TryAdd(identifier, new DebugCommand(identifier, callback));
+            commands.TryAdd(identifier, new DebugCommand(identifier, helpText, callback));
         }
 
         private Font textFont;
@@ -173,9 +173,9 @@ namespace Weary.Debug
         {
             public static void Init()
             {
-                RegisterCommand("help", Help);
-                RegisterCommand("echo", Echo);
-                RegisterCommand("crash", Crash);
+                RegisterCommand("help", "Displays this output.", Help);
+                RegisterCommand("echo", "Echoes a line back to the terminal.", Echo);
+                RegisterCommand("crash", "Causes an immediate crash and writes the reason to a crashlog in the executable directory.", Crash);
             }
 
             public static void Help(string[] args)
@@ -183,7 +183,7 @@ namespace Weary.Debug
                 Log.WriteLine(commands.Count + " commands available. Listed below: ");
                 foreach (string s in commands.Keys)
                 {
-                    Log.WriteLine(s.PadRight(20) + " -");
+                    Log.WriteLine(s.PadRight(19) + " - " + commands[s].help);
                 }
             }
 
