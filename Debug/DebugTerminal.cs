@@ -149,7 +149,7 @@ namespace Weary.Debug
                 return;
 
             char character = e.Unicode[0];
-            if (char.IsLetterOrDigit(character)
+            if (char.IsLetterOrDigit(character) || character == '_'
                 || character == '.' || character == '-'
                 || character == '/' || character == ' ')
                 currentLine.Append(character);
