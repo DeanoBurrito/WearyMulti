@@ -80,7 +80,7 @@ namespace Weary.Scene.ObjectDB
         {
             if (args.Length != 2)
             {
-                Log.WriteError("Expected field name, instance reference (uuid or path)");
+                Log.WriteError("Expected field name, instance ref (uuid or path)");
                 return;
             }
 
@@ -109,6 +109,30 @@ namespace Weary.Scene.ObjectDB
         }
 
         public static void SetField(string[] args)
-        {}
+        {
+            if (args.Length != 3)
+            {
+                Log.WriteLine("Expected field name, instance ref (uuid or path), and value");
+                return;
+            }
+
+            object instanceRef;
+            ulong id = ulong.MaxValue;
+            if (ulong.TryParse(args[1], out id))
+                instanceRef = SceneTree.GetCurrent().GetNode(id);
+            else
+                instanceRef = SceneTree.GetCurrent().GetNode(args[1]);
+            if (instanceRef == null)
+            {
+                Log.WriteError("Could not find node by " + (id == ulong.MaxValue ? "name" : "id")+ " '" + args[1] + "'");
+                return;
+            }
+
+            string objectName = instanceRef.GetType().Name;
+            objectName = objectName.Remove(0, objectName.LastIndexOf('.') + 1);
+            ObjectDatabase.Global.SetField(objectName, args[0], instanceRef, args[2]);
+            
+            Log.WriteLine(args[1] + "." + args[0] + ": value=" + args[2]);
+        }
     }
 }

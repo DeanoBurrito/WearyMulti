@@ -11,7 +11,7 @@ namespace Weary.Scene
         private float vScrollOffset = 0f;
         private float hScrollOffset = 0f;
         private float indentAmount = 24f;
-        private float lineHeight = 24f;
+        private float lineHeight = 22f;
         private List<ulong> openNodes = new List<ulong>();
         private ulong selectedNode = 0;
         private SceneTree tree;

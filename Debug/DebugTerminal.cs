@@ -26,8 +26,8 @@ namespace Weary.Debug
         private List<string> terminalHistory = new List<string>();
         private int maxHistoryLength = 2048;
 
-        private float lineHeight = 24f;
-        private uint textFontSize = 16;
+        private float lineHeight = 18f;
+        private uint textFontSize = 14;
 
         private int maxLogDequeueChunk = 100; //max number of log messages to read in a single frame, creates logging incoherency (only in terminal) but prevents infinite loops
         private int scrollOffset = 0;
@@ -125,7 +125,7 @@ namespace Weary.Debug
                 target.Draw(textLine);
             }
 
-            float currentLineY = background.Size.Y - (lineHeight * 1.2f);
+            float currentLineY = background.Size.Y - (lineHeight * 1.5f);
             textLine.FillColor = Color.White;
             textLine.Position = new Vector2f(2f, currentLineY);
             textLine.DisplayedString = ">>> " + currentLine.ToString();
