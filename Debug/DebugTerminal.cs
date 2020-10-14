@@ -40,7 +40,7 @@ namespace Weary.Debug
         internal DebugTerminal()
         {
             BuiltInCommands.Init();
-            textFont = new Font("_Data/Fonts/NotoSans_Regular.ttf");
+            textFont = new Font("_Data/Fonts/NotoMono_Regular.ttf");
 
             Log.OnWriteLine += (string msg) => { unreadLogOutput.Enqueue("[LOG] " + msg); };
             Log.OnWriteError += (string msg) => { unreadLogOutput.Enqueue("[ERROR] " + msg); };

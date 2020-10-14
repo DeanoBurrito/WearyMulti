@@ -20,7 +20,7 @@ namespace Weary.Scene
 
         public TreeVisualizer(SceneTree tree)
         {
-            bodyFont = new Font("_Data/Fonts/NotoSans_Regular.ttf");
+            bodyFont = new Font("_Data/Fonts/NotoMono_Regular.ttf");
 
             SetTree(tree);
         }
