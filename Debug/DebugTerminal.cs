@@ -95,11 +95,15 @@ namespace Weary.Debug
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
                 textLine.DisplayedString = terminalHistory[i];
-                textLine.Position = new Vector2f(2f, i * lineHeight);
-                if (terminalHistory[i].Contains("[ERROR]"))
+                textLine.Position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
+
+                if (i == historyShowStart && historyShowStart > 0)
+                    textLine.FillColor = new Color(180, 180, 180, 180);
+                else if (terminalHistory[i].Contains("[ERROR]"))
                     textLine.FillColor = Color.Red;
                 else
                     textLine.FillColor = Color.White;
+                    
                 target.Draw(textLine);
             }
 
@@ -170,6 +174,8 @@ namespace Weary.Debug
             public static void Init()
             {
                 RegisterCommand("help", Help);
+                RegisterCommand("echo", Echo);
+                RegisterCommand("crash", Crash);
             }
 
             public static void Help(string[] args)
@@ -185,6 +191,12 @@ namespace Weary.Debug
             {
                 string result = string.Join(' ', args);
                 Log.WriteLine(result);
+            }
+
+            public static void Crash(string[] args)
+            {
+                string reason = string.Join(' ', args);
+                Log.FatalError("Crash() terminal command run, reason: " + reason);
             }
         }
     }
