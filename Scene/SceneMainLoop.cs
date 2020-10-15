@@ -14,7 +14,7 @@ namespace Weary.Scene
         
         protected override void Init()
         {
-            ObjectDatabase.ScanAndPopulate();
+            ObjectDatabase.InitGlobal();
             
             string jsonData = File.ReadAllText("_Data/Scenes/ExampleScene.json");
             tree = SceneTree.LoadFromJson(jsonData);
