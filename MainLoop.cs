@@ -2,6 +2,7 @@ using System;
 using SFML.Window;
 using SFML.Graphics;
 using Weary.Debug;
+using Weary.Resources;
 
 namespace Weary
 {
@@ -49,6 +50,7 @@ namespace Weary
             window = new RenderWindow(new VideoMode(1600, 900), "Weary", Styles.Close);
             window.Closed += HandleExitInternal;
 
+            ResourceManager.Init();
             debugTerminal = new DebugTerminal();
             window.TextEntered += debugTerminal.HandleWindowTextEntered;
 

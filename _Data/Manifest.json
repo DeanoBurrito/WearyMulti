@@ -1,0 +1,34 @@
+{
+    "Name" : "WearyBaked",
+    "Description" : "Weary baked resources (mmm delicious baked goods)",
+    "Author" : "Dean T.",
+    "Version" : "1.0.0",
+
+    "Resources" : 
+    [
+        {
+            "Name" : "Fonts/NotoMono_Regular.ttf",
+            "Filename" : "Fonts/NotoMono_Regular.ttf",
+            "FileStart" : 0,
+            "FileLength" : 0,
+            "CanUnload" : false,
+            "CustomAttribs" : []
+        },
+        {
+            "Name" : "Fonts/NotoSans_Regular.ttf",
+            "Filename" : "Fonts/NotoSans_Regular.ttf",
+            "FileStart" : 0,
+            "FileLength" : 0,
+            "CanUnload" : false,
+            "CustomAttribs" : []
+        },
+        {
+            "Name" : "Scenes/ExampleScene.json",
+            "Filename" : "Scenes/ExampleScene.json",
+            "FileStart" : 0,
+            "FileLength" : 0,
+            "CanUnload" : true,
+            "CustomAttribs" : []
+        }
+    ]
+}
