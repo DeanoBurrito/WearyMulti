@@ -58,6 +58,7 @@ namespace Weary.Debug
 
             if (Input.IsKeyReleased("Return"))
             {
+                terminalHistory.Add(">" + currentLine.ToString());
                 HandleCommand(currentLine.ToString());
                 currentLine.Clear();
             }
