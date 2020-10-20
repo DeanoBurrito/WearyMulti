@@ -247,11 +247,18 @@ namespace Weary.Resources
             JsonDocument jdoc = JsonDocument.Parse(data);
             JsonElement jroot = jdoc.RootElement;
 
-            //TODO: this is hacky, and should use TryGetProperty() instead of GetProperty. We dont know whats in the file we just opened.
-            string packageName = jroot.GetProperty("Name").GetString() ?? "No package name";
-            string packageDesc = jroot.GetProperty("Description").GetString() ?? "No description";
-            string packageAuthor = jroot.GetProperty("Author").GetString() ?? "No author";
-            Version packageVersion = Version.Parse(jroot.GetProperty("Version").GetString()) ?? new Version(69, 420);
+            string packageName = string.Empty;
+            string packageDesc = string.Empty;
+            string packageAuthor = string.Empty;
+            Version packageVersion = new Version(0, 0, 0);
+            if (jroot.TryGetProperty("Name", out JsonElement nameProp))
+                packageName = nameProp.GetString();
+            if (jroot.TryGetProperty("Description", out JsonElement descProp))
+                packageDesc = descProp.GetString();
+            if (jroot.TryGetProperty("Author", out JsonElement authorProp))
+                packageAuthor = descProp.GetString();
+            if (jroot.TryGetProperty("Version", out JsonElement versionProp))
+                packageVersion = new Version(versionProp.GetString());
             Log.WriteLine($"Loading manifest: {packageName} by {packageAuthor} (v {packageVersion.ToString(3)}), {packageDesc}");
 
             JsonElement resElement = jroot.GetProperty("Resources");
