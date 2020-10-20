@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Linq;
 
 namespace Weary.Resources
 {
@@ -28,7 +29,7 @@ namespace Weary.Resources
                 if (!ext.StartsWith('.'))
                 {
                     Log.WriteError("Cannot attach resource with invalid file extension (not bigging with dot): " + ext);
-                    continue;   
+                    continue;
                 }
                 if (resLoaderMaps.ContainsKey(ext))
                 {
@@ -103,7 +104,7 @@ namespace Weary.Resources
             ridGenerator.FreeId(res.rid);
             res.Unload();
             res = null;
-            
+
             header.loadedId = 0;
             header.loaded = false;
             Log.WriteLine("Unloaded resource: " + header.resourceName);
@@ -129,7 +130,8 @@ namespace Weary.Resources
             try
             {
                 byte[] rawData;
-                using (BinaryReader reader = new BinaryReader(File.OpenRead(header.filename)))
+                using (FileStream fstream = File.OpenRead(header.filename))
+                using (BinaryReader reader = new BinaryReader(fstream))
                 {
                     if (header.fileStart > 0)
                         reader.BaseStream.Seek((long)header.fileStart, SeekOrigin.Begin);
@@ -170,7 +172,7 @@ namespace Weary.Resources
         {
             if (resources.ContainsKey(rid))
                 return GetHeader(ridToHeaderMap[rid]);
-            
+
             Log.WriteError("Cannot get resource header, nothing loaded with rid=" + rid);
             return null;
         }
@@ -225,7 +227,8 @@ namespace Weary.Resources
             try
             {
                 string manifestText;
-                using (BinaryReader reader = new BinaryReader(File.Open(filename, FileMode.Open)))
+                using (FileStream fstream = File.Open(filename, FileMode.Open))
+                using (BinaryReader reader = new BinaryReader(fstream))
                 {
                     if (readOffset > 0)
                         reader.BaseStream.Seek(readOffset, SeekOrigin.Begin);
@@ -309,7 +312,7 @@ namespace Weary.Resources
                     }
                 }
             }
-            
+
             if (headers.ContainsKey(name))
             {
                 Log.WriteError($"Cannot added manifest entry {name}, an entry already exists with this name.");
@@ -326,10 +329,122 @@ namespace Weary.Resources
             return;
         }
 
-        public void SaveManifestText(string outputName)
-        { throw new NotImplementedException(); }
+        public void SaveManifestText(string outputName, string[] resourceList, bool enableOverwrite = false)
+        {
+            if (File.Exists(outputName))
+            {
+                if (enableOverwrite)
+                {
+                    Log.WriteLine("Manifest file " + outputName + " already exists. Overwriting with new.");
+                    File.Delete(outputName);
+                }
+                else
+                {
+                    Log.WriteError("Manifest file " + outputName + " already exists, and enableOverwrite is not enabled. Aborting write operation.");
+                    return;
+                }
+            }
 
-        public void SaveManifestBinary(string outputName)
-        { throw new NotImplementedException(); }
+            if (resourceList == null)
+                resourceList = headers.Keys.ToArray();
+
+            try
+            {
+                using (FileStream fstream = File.OpenWrite(outputName))
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(fstream))
+                {
+                    WriteManifest(writer, resourceList);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.WriteError("Error occured during manifest write, exception: " + e.ToString());
+            }
+        }
+
+        public void SaveManifestBinary(string outputName, string[] resourceList, bool enableOverwrite = false)
+        {
+            if (File.Exists(outputName))
+            {
+                if (enableOverwrite)
+                {
+                    Log.WriteLine("Manifest file " + outputName + " already exists. Overwriting with new.");
+                    File.Delete(outputName);
+                }
+                else
+                {
+                    Log.WriteError("Manifest file " + outputName + " already exists, and enableOverwrite is not enabled. Aborting write operation.");
+                    return;
+                }
+            }
+
+            if (resourceList == null)
+                resourceList = headers.Keys.ToArray();
+            
+            try
+            {
+                using (MemoryStream memFile = new MemoryStream())
+                {
+                    using (Utf8JsonWriter writer = new Utf8JsonWriter(memFile))
+                    {
+                        WriteManifest(writer, resourceList);
+                    }
+
+                    File.WriteAllBytes(outputName, memFile.ToArray());
+                }
+
+            }
+            catch (Exception e)
+            {
+                Log.WriteError("Error occured during manifest write, exception: " + e.ToString());
+            }
+        }
+
+        private void WriteManifest(Utf8JsonWriter writer, string[] headerNames)
+        { 
+            writer.WriteStartObject();
+
+            //TODO: implement a way to get these values programmatically
+            writer.WriteString("Name", "Coming soon!");
+            writer.WriteString("Description", "Coming soon!");
+            writer.WriteString("Author", "Coming soon!");
+            writer.WriteString("Version", "0.0.0");
+
+            writer.WriteStartArray("Resources");
+            foreach (string headerStr in headerNames)
+            {
+                if (!headers.ContainsKey(headerStr))
+                    continue;
+                
+                WriteManifestEntry(writer, headers[headerStr]);
+            }
+            writer.WriteEndArray();
+
+            writer.WriteEndObject();
+        }
+
+        private void WriteManifestEntry(Utf8JsonWriter writer, ResourceHeader header)
+        {
+            writer.WriteStartObject();
+
+            writer.WriteString("Name", header.resourceName);
+            writer.WriteString("Filename", header.filename);
+            writer.WriteNumber("FileStart", header.fileStart);
+            writer.WriteNumber("FileLength", header.fileLength);
+            writer.WriteBoolean("CanUnload", header.canUnload);
+            writer.WriteString("LoaderExtension", header.loaderExt);
+
+            writer.WriteStartArray("CustomAttribs");
+            foreach (KeyValuePair<string, string> custom in header.customAttribs)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("Key", custom.Key);
+                writer.WriteString("Value", custom.Value);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+
+            writer.WriteEndObject();
+        }
     }
 }
