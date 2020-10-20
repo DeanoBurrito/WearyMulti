@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
-using SFML.System;
 using SFML.Window;
 using SFML.Graphics;
 using Weary.Resources;
@@ -98,8 +97,8 @@ namespace Weary.Debug
 
             RectangleShape background = new RectangleShape();
             background.FillColor = new Color(20, 20, 20);
-            background.Position = new Vector2f(0f, 0f);
-            background.Size = new Vector2f(target.Size.X, target.Size.Y / 2f);
+            background.Position = new SFML.System.Vector2f(0f, 0f);
+            background.Size = new SFML.System.Vector2f(target.Size.X, target.Size.Y / 2f);
             target.Draw(background);
 
             float historyDrawableHeight = background.Size.Y - (lineHeight * 2f);
@@ -115,7 +114,7 @@ namespace Weary.Debug
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
                 textLine.DisplayedString = terminalHistory[i];
-                textLine.Position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
+                textLine.Position = new SFML.System.Vector2f(2f, (i - historyShowStart) * lineHeight);
 
                 if (i == historyShowStart && historyShowStart > 0)
                     textLine.FillColor = new Color(180, 180, 180, 180);
@@ -129,7 +128,7 @@ namespace Weary.Debug
 
             float currentLineY = background.Size.Y - (lineHeight * 1.5f);
             textLine.FillColor = Color.White;
-            textLine.Position = new Vector2f(2f, currentLineY);
+            textLine.Position = new SFML.System.Vector2f(2f, currentLineY);
             textLine.DisplayedString = ">>> " + currentLine.ToString();
             target.Draw(textLine);
 
@@ -137,8 +136,8 @@ namespace Weary.Debug
             {
                 RectangleShape cursorRect = new RectangleShape();
                 cursorRect.FillColor = Color.White;
-                cursorRect.Position = new Vector2f(textLine.GetLocalBounds().Width + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
-                cursorRect.Size = new Vector2f(2f, cursorHeight);
+                cursorRect.Position = new SFML.System.Vector2f(textLine.GetLocalBounds().Width + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
+                cursorRect.Size = new SFML.System.Vector2f(2f, cursorHeight);
                 target.Draw(cursorRect);
             }
         }

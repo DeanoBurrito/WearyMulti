@@ -1,6 +1,6 @@
 using System;
-using SFML.Window;
-using SFML.Graphics;
+using Weary.Backends.SF;
+using Weary.Rendering;
 using Weary.Debug;
 using Weary.Resources;
 
@@ -10,7 +10,7 @@ namespace Weary
     {
         private readonly float fixedUpdateStep = 1f / 60f;
         private bool keepRunning = true;
-        private RenderWindow window;
+        private Window mainWindow;
         private DebugTerminal debugTerminal;
 
         public MainLoop()
@@ -25,8 +25,10 @@ namespace Weary
                 DeltaTime delta = new DeltaTime(fixedUpdateStep);
 
                 UpdateInternal(delta);
-                FixedUpdate(delta);
-                RenderInternal(window);
+                if (keepRunning)
+                    FixedUpdate(delta);
+                if (keepRunning)
+                    RenderInternal(mainWindow);
 
                 //TODO: hack, fix this
                 System.Threading.Thread.Sleep((int)(fixedUpdateStep * 1000f));
@@ -37,7 +39,7 @@ namespace Weary
 
         public void Exit()
         {
-            HandleExitInternal(window, EventArgs.Empty);
+            HandleExitInternal(mainWindow);
         }
 
         protected virtual void Init()
@@ -46,14 +48,16 @@ namespace Weary
         private void InitInternal()
         {
             Log.WriteLine("--- Initializing main loop.");
+
             ResourceManager.Init();
-            
             Input.Init(true);
-            window = new RenderWindow(new VideoMode(1600, 900), "Weary", Styles.Close);
-            window.Closed += HandleExitInternal;
+            new SFWindowServer().Init();
+
+            mainWindow = WindowServer.Global.CreateWindow(1600, 900, false, "Weary (now with servers!)");
+            mainWindow.onDestroy += HandleExitInternal;
 
             debugTerminal = new DebugTerminal();
-            window.TextEntered += debugTerminal.HandleWindowTextEntered;
+            (WindowServer.Global as SFWindowServer).GetRenderWindow(mainWindow).TextEntered += debugTerminal.HandleWindowTextEntered;
 
             Init();
         }
@@ -66,6 +70,8 @@ namespace Weary
             Log.WriteLine("--- Deinitializing main loop.");
 
             Deinit();
+
+            WindowServer.Global.Deinit();
         }
 
         protected virtual void Update(DeltaTime delta)
@@ -73,7 +79,8 @@ namespace Weary
 
         private void UpdateInternal(DeltaTime delta)
         {
-            window.DispatchEvents();
+            WindowServer.Global.HandleEvents();
+
             Input.Update(delta);
             debugTerminal.Update(delta);
             
@@ -83,23 +90,24 @@ namespace Weary
         protected virtual void FixedUpdate(DeltaTime delta)
         {}
 
-        private void RenderInternal(RenderWindow window)
+        private void RenderInternal(Window window)
         {   
-            window.Clear(Color.Black);
+            SFML.Graphics.RenderWindow sfWindow = (WindowServer.Global as SFWindowServer).GetRenderWindow(mainWindow);
+            sfWindow.Clear(SFML.Graphics.Color.Black);
 
             Render(window);
-            debugTerminal.Render(window);
+            debugTerminal.Render(sfWindow);
 
-            window.Display();
+            sfWindow.Display();
         }
 
-        protected virtual void Render(RenderWindow window)
+        protected virtual void Render(Window window)
         {}
 
         protected virtual void HandleExitRequest()
         {}
 
-        private void HandleExitInternal(object sender, EventArgs e)
+        private void HandleExitInternal(object sender)
         {
             keepRunning = false;
             HandleExitRequest();

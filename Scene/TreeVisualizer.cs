@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SFML.System;
 using SFML.Graphics;
 using Weary.Resources;
 
@@ -135,7 +134,7 @@ namespace Weary.Scene
             if (tree == null)
             {
                 Text noDisplayText = new Text("Tree is null, nothing to display.", bodyFont.Get<FontResource>().resource);
-                noDisplayText.Position = new Vector2f(50f, 50f);
+                noDisplayText.Position = new SFML.System.Vector2f(50f, 50f);
                 noDisplayText.FillColor = Color.Red;
                 target.Draw(noDisplayText);
 
@@ -144,11 +143,11 @@ namespace Weary.Scene
                 return;
             }
 
-            Vector2f refVector = new Vector2f(0f, 0f);
+            SFML.System.Vector2f refVector = new SFML.System.Vector2f(0f, 0f);
             RenderNode(target, tree.root, ref refVector);
         }
 
-        private void RenderNode(RenderTarget target, SceneNode node, ref Vector2f cursorPosition)
+        private void RenderNode(RenderTarget target, SceneNode node, ref SFML.System.Vector2f cursorPosition)
         {
             List<SceneNode> children = node.GetChildren();
             StringBuilder textBuilder = new StringBuilder();
@@ -157,7 +156,7 @@ namespace Weary.Scene
             textBuilder.Append("");
 
             Text nodeText = new Text(textBuilder.ToString(), bodyFont.Get<FontResource>().resource);
-            nodeText.Position = new Vector2f(hScrollOffset, vScrollOffset) + cursorPosition;
+            nodeText.Position = new SFML.System.Vector2f(hScrollOffset, vScrollOffset) + cursorPosition;
             nodeText.CharacterSize = 16;
 
             if (node.uuid == selectedNode)
@@ -167,17 +166,17 @@ namespace Weary.Scene
 
             target.Draw(nodeText);
 
-            cursorPosition += new Vector2f(0f, lineHeight);
+            cursorPosition += new SFML.System.Vector2f(0f, lineHeight);
             if (openNodes.Contains(node.uuid))
             {
                 if (children.Count > 0)
                 {
-                    cursorPosition += new Vector2f(indentAmount, 0f);
+                    cursorPosition += new SFML.System.Vector2f(indentAmount, 0f);
                     for (int i = 0; i < children.Count; i++)
                     {
                         RenderNode(target, children[i], ref cursorPosition);
                     }
-                    cursorPosition -= new Vector2f(indentAmount, 0f);
+                    cursorPosition -= new SFML.System.Vector2f(indentAmount, 0f);
                 }
             }
         }

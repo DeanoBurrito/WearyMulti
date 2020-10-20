@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using SFML.Graphics;
+using Weary.Rendering;
 using Weary.Resources;
 using Weary.Scene.ObjectDB;
 
@@ -38,10 +38,11 @@ namespace Weary.Scene
                 visualizer.Update(delta);
         }
 
-        protected override void Render(RenderWindow window)
+        protected override void Render(Window window)
         {
+            SFML.Graphics.RenderWindow sfWindow = (WindowServer.Global as Weary.Backends.SF.SFWindowServer).GetRenderWindow(window);
             if (renderVisualizer)
-                visualizer.Render(window);
+                visualizer.Render(sfWindow);
         }
 
         protected override void HandleExitRequest()
