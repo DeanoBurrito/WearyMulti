@@ -12,6 +12,7 @@
             "FileStart" : 0,
             "FileLength" : 0,
             "CanUnload" : false,
+            "LoaderExtension" : ".ttf",
             "CustomAttribs" : []
         },
         {
@@ -20,6 +21,7 @@
             "FileStart" : 0,
             "FileLength" : 0,
             "CanUnload" : false,
+            "LoaderExtension" : ".ttf",
             "CustomAttribs" : []
         },
         {
@@ -28,6 +30,7 @@
             "FileStart" : 0,
             "FileLength" : 0,
             "CanUnload" : true,
+            "LoaderExtension" : ".json",
             "CustomAttribs" : []
         }
     ]

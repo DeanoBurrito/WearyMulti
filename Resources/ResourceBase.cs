@@ -15,10 +15,15 @@ namespace Weary.Resources
             refCount = 0;
         }
 
-        protected abstract void Load(byte[] data);
-        protected abstract void Unload();
-        protected abstract byte[] Store();
-        protected virtual void Edit(byte[] data, int offset = 0) 
+        protected internal abstract void Load(byte[] data);
+        protected internal abstract void Unload();
+        protected internal abstract byte[] Store();
+        protected internal virtual void Edit(byte[] data, int offset = 0) 
         {}
+
+        protected internal ResourceHeader GetHeader()
+        {
+            return resman.GetHeader(rid);
+        }
     }
 }

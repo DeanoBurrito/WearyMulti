@@ -11,25 +11,28 @@ namespace Weary.Resources
         public readonly ulong fileStart;
         public readonly ulong fileLength;
         public readonly bool canUnload;
+        public readonly string loaderExt;
         public readonly ImmutableDictionary<string, string> customAttribs;
         
         internal bool loaded = false;
         internal ulong loadedId = 0;
 
-        internal ResourceHeader(string name, string file, ulong startPos, ulong length, bool allowUnload, Dictionary<string, string> customData)
+        internal ResourceHeader(string name, string file, ulong startPos, ulong length, bool allowUnload, string loaderType, Dictionary<string, string> customData)
         {
             resourceName = name;
             filename = file;
             fileStart = startPos;
             fileLength = length;
             canUnload = allowUnload;
+            loaderExt = loaderType;
 
             customAttribs = customData == null ? ImmutableDictionary.Create<string, string>() : customData.ToImmutableDictionary();
         }
 
         public override string ToString()
         {
-            return resourceName + ": file=" + filename + ", start=" + fileStart + ", length=" + fileLength + ", canUnload=" + canUnload + ", custom=(" + customAttribs.Count + " entries)";
+            return resourceName + ": file=" + filename + ", start=" + fileStart + ", length=" + fileLength + ", canUnload=" + 
+                canUnload + ", loaded=" + (loaded ? "true (id=" + loadedId + ")" : "false") + ", custom=(" + customAttribs.Count + " entries)";
         }
     }
 }
