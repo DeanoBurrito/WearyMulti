@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SFML.System;
 using SFML.Graphics;
+using Weary.Resources;
 
 namespace Weary.Scene
 {
@@ -16,11 +17,11 @@ namespace Weary.Scene
         private ulong selectedNode = 0;
         private SceneTree tree;
 
-        private Font bodyFont;
+        private ResourceRef bodyFont;
 
         public TreeVisualizer(SceneTree tree)
         {
-            bodyFont = new Font("_Data/Fonts/NotoMono_Regular.ttf");
+            bodyFont = ResourceManager.Global.GetRef("Fonts/NotoMono_Regular.ttf");
 
             SetTree(tree);
         }
@@ -133,7 +134,7 @@ namespace Weary.Scene
         {
             if (tree == null)
             {
-                Text noDisplayText = new Text("Tree is null, nothing to display.", bodyFont);
+                Text noDisplayText = new Text("Tree is null, nothing to display.", bodyFont.Get<FontResource>().resource);
                 noDisplayText.Position = new Vector2f(50f, 50f);
                 noDisplayText.FillColor = Color.Red;
                 target.Draw(noDisplayText);
@@ -155,7 +156,7 @@ namespace Weary.Scene
             textBuilder.Append("[" + node.name + ", " + children.Count + " children] ");
             textBuilder.Append("");
 
-            Text nodeText = new Text(textBuilder.ToString(), bodyFont);
+            Text nodeText = new Text(textBuilder.ToString(), bodyFont.Get<FontResource>().resource);
             nodeText.Position = new Vector2f(hScrollOffset, vScrollOffset) + cursorPosition;
             nodeText.CharacterSize = 16;
 

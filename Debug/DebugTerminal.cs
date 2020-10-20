@@ -5,6 +5,7 @@ using System.Text;
 using SFML.System;
 using SFML.Window;
 using SFML.Graphics;
+using Weary.Resources;
 
 namespace Weary.Debug
 {
@@ -18,7 +19,7 @@ namespace Weary.Debug
             commands.TryAdd(identifier, new DebugCommand(identifier, helpText, callback));
         }
 
-        private Font textFont;
+        private ResourceRef textFont;
         private StringBuilder currentLine = new StringBuilder();
         private bool isVisible = false;
 
@@ -40,7 +41,7 @@ namespace Weary.Debug
         internal DebugTerminal()
         {
             BuiltInCommands.Init();
-            textFont = new Font("_Data/Fonts/NotoMono_Regular.ttf");
+            textFont = ResourceManager.Global.GetRef("Fonts/NotoMono_Regular.ttf");
 
             Log.OnWriteLine += (string msg) => { unreadLogOutput.Enqueue("[LOG] " + msg); };
             Log.OnWriteError += (string msg) => { unreadLogOutput.Enqueue("[ERROR] " + msg); };
@@ -110,7 +111,7 @@ namespace Weary.Debug
             if (historyShowEnd > terminalHistory.Count)
                 historyShowEnd = terminalHistory.Count;
 
-            Text textLine = new Text("", textFont, textFontSize);
+            Text textLine = new Text("", textFont.Get<FontResource>().resource, textFontSize);
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
                 textLine.DisplayedString = terminalHistory[i];

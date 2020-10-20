@@ -19,9 +19,19 @@ namespace Weary.Resources
             resman = copy.resman;
         }
 
-        public ResourceBase GetResource()
+        public ResourceBase Get()
         {
             return resman.GetResource(rid);
+        }
+
+        public T Get<T>() where T : ResourceBase
+        {
+            ResourceBase rbase = Get();
+            if (rbase is T)
+                return (T)rbase;
+
+            Log.WriteError("Could not convert resource to type: " + typeof(T));
+            return default(T);
         }
     }
 }

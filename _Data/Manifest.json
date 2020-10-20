@@ -20,7 +20,7 @@
             "Filename" : "Fonts/NotoSans_Regular.ttf",
             "FileStart" : 0,
             "FileLength" : 0,
-            "CanUnload" : false,
+            "CanUnload" : true,
             "LoaderExtension" : ".ttf",
             "CustomAttribs" : []
         },
