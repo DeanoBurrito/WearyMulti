@@ -46,11 +46,12 @@ namespace Weary
         private void InitInternal()
         {
             Log.WriteLine("--- Initializing main loop.");
+            ResourceManager.Init();
+            
             Input.Init(true);
             window = new RenderWindow(new VideoMode(1600, 900), "Weary", Styles.Close);
             window.Closed += HandleExitInternal;
 
-            ResourceManager.Init();
             debugTerminal = new DebugTerminal();
             window.TextEntered += debugTerminal.HandleWindowTextEntered;
 
