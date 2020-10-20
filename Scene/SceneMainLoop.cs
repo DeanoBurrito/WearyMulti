@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using SFML.Graphics;
-using Weary.Scene;
+using Weary.Resources;
 using Weary.Scene.ObjectDB;
 
 namespace Weary.Scene
@@ -16,7 +16,7 @@ namespace Weary.Scene
         {
             ObjectDatabase.InitGlobal();
             
-            string jsonData = File.ReadAllText("_Data/Scenes/ExampleScene.json");
+            string jsonData = ResourceManager.Global.GetRef("Scenes/ExampleScene.json").Get<TextResource>().resource;
             tree = SceneTree.LoadFromJson(jsonData);
             visualizer = new TreeVisualizer(tree);
         }

@@ -302,6 +302,12 @@ namespace Weary.Resources
                     }
                 }
             }
+            
+            if (headers.ContainsKey(name))
+            {
+                Log.WriteError($"Cannot added manifest entry {name}, an entry already exists with this name.");
+                return;
+            }
 
             filename = Path.Combine(relativePath, filename);
             ResourceHeader header = new ResourceHeader(name, filename, fileStart, fileLen, canUnload, loaderExt, attribs);
