@@ -11,7 +11,7 @@ namespace Weary
         private readonly float fixedUpdateStep = 1f / 60f;
         private bool keepRunning = true;
         private Window mainWindow;
-        private RenderTargetResource mainRenderTarget;
+        private RenderTarget mainRenderTarget;
         private DebugTerminal debugTerminal;
 
         public MainLoop()
@@ -58,7 +58,7 @@ namespace Weary
             mainWindow = WindowServer.Global.CreateWindow(1600, 900, false, "Weary (now with servers!)");
             mainWindow.onDestroy += HandleExitInternal;
 
-            mainRenderTarget = ResourceManager.Global.CreateResource<RenderTargetResource>("Runtime/WindowRenderTarget");
+            mainRenderTarget = ResourceManager.Global.CreateResource<RenderTarget>("Runtime/WindowRenderTarget");
             RenderServer.Global.BindRenderTarget(mainRenderTarget, mainWindow);
 
             debugTerminal = new DebugTerminal();
@@ -96,7 +96,7 @@ namespace Weary
         protected virtual void FixedUpdate(DeltaTime delta)
         {}
 
-        private void RenderInternal(RenderTargetResource target)
+        private void RenderInternal(RenderTarget target)
         {   
             target.Clear(Color.Black);
 
@@ -106,7 +106,7 @@ namespace Weary
             target.Display();
         }
 
-        protected virtual void Render(RenderTargetResource target)
+        protected virtual void Render(RenderTarget target)
         {}
 
         protected virtual void HandleExitRequest()

@@ -28,8 +28,8 @@ namespace Weary.Debug
 
         private float lineHeight = 18f;
         private uint textFontSize = 14;
-        private RectShapeResource backgroundRect;
-        private RectShapeResource cursorRect;
+        private RectangleShape backgroundRect;
+        private RectangleShape cursorRect;
 
         private int maxLogDequeueChunk = 100; //max number of log messages to read in a single frame, creates logging incoherency (only in terminal) but prevents infinite loops
         private int scrollOffset = 0;
@@ -43,8 +43,8 @@ namespace Weary.Debug
         {
             BuiltInCommands.Init();
             textFont = ResourceManager.Global.GetRef("Fonts/NotoMono_Regular.ttf");
-            backgroundRect = ResourceManager.Global.CreateResource<RectShapeResource>("Runtime/DebugTerminal/Background");
-            cursorRect = ResourceManager.Global.CreateResource<RectShapeResource>("Runtime/DebugTerminal/Cursor");
+            backgroundRect = ResourceManager.Global.CreateResource<RectangleShape>("Runtime/DebugTerminal/Background");
+            cursorRect = ResourceManager.Global.CreateResource<RectangleShape>("Runtime/DebugTerminal/Cursor");
             cursorRect.width = 2f;
             cursorRect.height = cursorHeight;
 
@@ -96,7 +96,7 @@ namespace Weary.Debug
             }
         }
 
-        public void Render(RenderTargetResource target)
+        public void Render(RenderTarget target)
         {
             if (!isVisible)
                 return;
@@ -130,20 +130,20 @@ namespace Weary.Debug
                     textLineParams.tintColor = Color.White;
                     
                 textLineParams.position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
-                target.DrawText(textFont.Get<FontResource>(), terminalHistory[i], textFontSize, textLineParams);
+                target.DrawText(textFont.Get<Font>(), terminalHistory[i], textFontSize, textLineParams);
             }
 
             float currentLineY = backgroundRect.height - (lineHeight * 1.5f);
             textLineParams.tintColor = Color.White;
             textLineParams.position = new Vector2f(2f, currentLineY);
-            target.DrawText(textFont.Get<FontResource>(), ">>> " + currentLine.ToString(), textFontSize, textLineParams);
+            target.DrawText(textFont.Get<Font>(), ">>> " + currentLine.ToString(), textFontSize, textLineParams);
 
             if (cursorVisible)
             {
                 RenderParams cursorParams = new RenderParams();
                 cursorParams.tintColor = Color.White;
                 
-                Vector2f currLineBounds = RenderServer.Global.GetTextBounds(textFont.Get<FontResource>(), ">>> " +  currentLine.ToString(), textFontSize);
+                Vector2f currLineBounds = RenderServer.Global.GetTextBounds(textFont.Get<Font>(), ">>> " +  currentLine.ToString(), textFontSize);
                 cursorParams.position = new Vector2f(currLineBounds.x + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
                 target.DrawShape(cursorRect, cursorParams);
             }

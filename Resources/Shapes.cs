@@ -9,12 +9,12 @@ namespace Weary.Resources
         Circle,
     }
     
-    public class RectShapeResource : ShapeResource
+    public class RectangleShape : ShapeBase
     {
         public float width;
         public float height;
         
-        internal protected RectShapeResource(ResourceManager resman) : base(ShapeType.Rect, resman)
+        internal protected RectangleShape(ResourceManager resman) : base(ShapeType.Rect, resman)
         {}
 
         protected internal override void Load(byte[] data)
@@ -33,11 +33,11 @@ namespace Weary.Resources
         }
     }
 
-    public class CircleShapeResource : ShapeResource
+    public class CircleShape : ShapeBase
     {
         public float radius;
 
-        internal protected CircleShapeResource(ResourceManager resman) : base(ShapeType.Circle, resman)
+        internal protected CircleShape(ResourceManager resman) : base(ShapeType.Circle, resman)
         {}
 
         protected internal override void Load(byte[] data)

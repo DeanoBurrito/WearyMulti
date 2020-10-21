@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Weary.Rendering;
 using Weary.Resources;
-using SFML.Graphics;
 
 namespace Weary.Backends.SF
 {
@@ -10,7 +9,7 @@ namespace Weary.Backends.SF
     {
         private List<(ResourceBase wryRes, object sfRes)> destructionPending = new List<(ResourceBase, object)>();
 
-        private Dictionary<ulong, (RenderTargetResource wryTarget, RenderTarget sfTarget)> renderTargets = new Dictionary<ulong, (RenderTargetResource, RenderTarget)>();
+        private Dictionary<ulong, (Rendering.RenderTarget wryTarget, SFML.Graphics.RenderTarget sfTarget)> renderTargets = new Dictionary<ulong, (RenderTarget, SFML.Graphics.RenderTarget)>();
         
         public override void Init()
         {
@@ -39,13 +38,13 @@ namespace Weary.Backends.SF
         {
             for (int i = 0; i < destructionPending.Count; i++)
             {
-                if (destructionPending[i].wryRes is RenderTargetResource wryRenderTarget)
+                if (destructionPending[i].wryRes is Rendering.RenderTarget wryRenderTarget)
                 {
-                    RenderTarget sfRenderTarget = (RenderTarget)destructionPending[i].sfRes;
+                    SFML.Graphics.RenderTarget sfRenderTarget = (SFML.Graphics.RenderTarget)destructionPending[i].sfRes;
                     Log.WriteLine("SFML rendertarget destroyed: rid=" + wryRenderTarget.rid);
 
                     //we're leaving render windows alone here, as those will be handled by the window server.
-                    if (sfRenderTarget is RenderTexture sfTex)
+                    if (sfRenderTarget is SFML.Graphics.RenderTexture sfTex)
                         sfTex.Dispose();
                     sfTex = null;
                 }
@@ -53,7 +52,7 @@ namespace Weary.Backends.SF
             destructionPending.Clear();
         }
 
-        public override void DrawShape(RenderTargetResource target, ShapeResource shape, RenderParams renderParams)
+        public override void DrawShape(Rendering.RenderTarget target, ShapeBase shape, RenderParams renderParams)
         {
             if (!renderParams.enabled)
                 return;
@@ -61,37 +60,37 @@ namespace Weary.Backends.SF
             switch (shape.shapeType)
             {
                 case ShapeType.Rect:
-                    RenderRectShape(target, (RectShapeResource)shape, renderParams);
+                    RenderRectShape(target, (RectangleShape)shape, renderParams);
                     break;
                 case ShapeType.Circle:
-                    RenderCircleShape(target, (CircleShapeResource)shape, renderParams);
+                    RenderCircleShape(target, (CircleShape)shape, renderParams);
                     break;
             }
         }
 
-        private void RenderRectShape(RenderTargetResource target, RectShapeResource shape, RenderParams renderParams)
+        private void RenderRectShape(Rendering.RenderTarget target, RectangleShape shape, RenderParams renderParams)
         {
-            RenderTarget sfTarget = GetValidRenderTarget(target);
+            SFML.Graphics.RenderTarget sfTarget = GetValidRenderTarget(target);
             if (sfTarget == null)
                 return;
             
-            RectangleShape sfRect = new RectangleShape(new SFML.System.Vector2f(shape.width, shape.height));
+            SFML.Graphics.RectangleShape sfRect = new SFML.Graphics.RectangleShape(new SFML.System.Vector2f(shape.width, shape.height));
             sfRect.Position = new SFML.System.Vector2f(renderParams.position.x, renderParams.position.y);
             sfRect.FillColor = GetSfmlColor(renderParams.tintColor);
 
             sfTarget.Draw(sfRect);
         }
 
-        private void RenderCircleShape(RenderTargetResource targt, CircleShapeResource shape, RenderParams renderParams)
+        private void RenderCircleShape(Rendering.RenderTarget targt, CircleShape shape, RenderParams renderParams)
         {}
 
-        public override void DrawText(RenderTargetResource target, FontResource font, string text, uint fontSize, RenderParams renderParams)
+        public override void DrawText(Rendering.RenderTarget target, Font font, string text, uint fontSize, RenderParams renderParams)
         {
-            RenderTarget sfTarget = GetValidRenderTarget(target);
+            SFML.Graphics.RenderTarget sfTarget = GetValidRenderTarget(target);
             if (sfTarget == null)
                 return;
             
-            Text sfText = new Text(text, font.resource, fontSize);
+            SFML.Graphics.Text sfText = new SFML.Graphics.Text(text, font.resource, fontSize);
             sfText.Position = new SFML.System.Vector2f(renderParams.position.x, renderParams.position.y);
             sfText.FillColor = GetSfmlColor(renderParams.tintColor);
             
@@ -99,22 +98,22 @@ namespace Weary.Backends.SF
             sfText.Dispose();
         }
 
-        public override Vector2f GetTextBounds(FontResource font, string text, uint fontSize)
+        public override Vector2f GetTextBounds(Font font, string text, uint fontSize)
         {
-            Text sfText = new Text(text, font.resource, fontSize);
-            FloatRect bounds = sfText.GetLocalBounds();
+            SFML.Graphics.Text sfText = new SFML.Graphics.Text(text, font.resource, fontSize);
+            SFML.Graphics.FloatRect bounds = sfText.GetLocalBounds();
             sfText.Dispose();
             
             return new Vector2f(bounds.Width, bounds.Height);
         }
 
-        public override void InitTexture(TextureResource texture, uint w, uint h)
+        public override void InitTexture(Texture texture, uint w, uint h)
         {}
 
-        public override void DestroyTexture(TextureResource texture)
+        public override void DestroyTexture(Texture texture)
         {}
 
-        public override void InitRenderTarget(RenderTargetResource target, uint w, uint h)
+        public override void InitRenderTarget(Rendering.RenderTarget target, uint w, uint h)
         {
             if (renderTargets.ContainsKey(target.rid))
             {
@@ -122,7 +121,7 @@ namespace Weary.Backends.SF
                 return;
             }
 
-            RenderTexture sfTarget = new RenderTexture(w, h);
+            SFML.Graphics.RenderTexture sfTarget = new SFML.Graphics.RenderTexture(w, h);
             target.width = sfTarget.Size.X;
             target.height = sfTarget.Size.Y;
             renderTargets.Add(target.rid, (target, sfTarget));
@@ -130,11 +129,11 @@ namespace Weary.Backends.SF
             Log.WriteLine("New SFML rendertarget initialized: w=" + w + ", h=" + h + ", rid=" + target.rid);
         }
 
-        public override void BindRenderTarget(RenderTargetResource target, Window window)
+        public override void BindRenderTarget(Rendering.RenderTarget target, Window window)
         {
             if (WindowServer.Global is SFWindowServer sfWindowServer)
             {
-                RenderWindow sfRenderWindow = sfWindowServer.GetRenderWindow(window);
+                SFML.Graphics.RenderWindow sfRenderWindow = sfWindowServer.GetRenderWindow(window);
                 target.width = sfRenderWindow.Size.X;
                 target.height = sfRenderWindow.Size.Y;
                 renderTargets.Add(target.rid, (target, sfRenderWindow));
@@ -145,9 +144,9 @@ namespace Weary.Backends.SF
                 Log.WriteError("Unable to bind SFML render target to window, window server is not SFML-based (mismatching data).");
         }
 
-        public override void DestroyRenderTarget(RenderTargetResource target)
+        public override void DestroyRenderTarget(Rendering.RenderTarget target)
         {
-            RenderTarget sfTarget = GetValidRenderTarget(target);
+            SFML.Graphics.RenderTarget sfTarget = GetValidRenderTarget(target);
             if (sfTarget == null)
                 return;
             
@@ -156,30 +155,30 @@ namespace Weary.Backends.SF
             destructionPending.Add((target, sfTarget));
         }
 
-        public override void ClearRenderTarget(RenderTargetResource target, Weary.Rendering.Color clearColor)
+        public override void ClearRenderTarget(Rendering.RenderTarget target, Weary.Rendering.Color clearColor)
         {
-            RenderTarget sfTarget = GetValidRenderTarget(target);
+            SFML.Graphics.RenderTarget sfTarget = GetValidRenderTarget(target);
             if (sfTarget == null)
                 return;
             
             sfTarget.Clear(GetSfmlColor(clearColor));
         }
 
-        public override void DisplayRenderTarget(RenderTargetResource target)
+        public override void DisplayRenderTarget(Rendering.RenderTarget target)
         {
-            RenderTarget sfTarget = GetValidRenderTarget(target);
+            SFML.Graphics.RenderTarget sfTarget = GetValidRenderTarget(target);
             if (sfTarget == null)
                 return;
 
-            if (sfTarget is RenderTexture sfRenderTexture)
+            if (sfTarget is SFML.Graphics.RenderTexture sfRenderTexture)
                 sfRenderTexture.Display();
-            else if (sfTarget is RenderWindow sfRenderWindow)
+            else if (sfTarget is SFML.Graphics.RenderWindow sfRenderWindow)
                 sfRenderWindow.Display();
             else
                 Log.WriteError("SFML RenderTarget does not support display() call (if you see this, panic). rid=" + target.rid);
         }
 
-        private RenderTarget GetValidRenderTarget(RenderTargetResource target)
+        private SFML.Graphics.RenderTarget GetValidRenderTarget(Rendering.RenderTarget target)
         {
             if (target == null)
             {

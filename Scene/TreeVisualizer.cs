@@ -129,14 +129,14 @@ namespace Weary.Scene
             }
         }
 
-        public void Render(RenderTargetResource target)
+        public void Render(RenderTarget target)
         {
             if (tree == null)
             {
                 RenderParams textParams = new RenderParams();
                 textParams.tintColor = Color.Red;
                 textParams.position = new Vector2f(50f, 50f);
-                target.DrawText(bodyFont.Get<FontResource>(), "Tree is null, nothing to display", 16, textParams);
+                target.DrawText(bodyFont.Get<Font>(), "Tree is null, nothing to display", 16, textParams);
 
                 return;
             }
@@ -145,7 +145,7 @@ namespace Weary.Scene
             RenderNode(target, tree.root, ref refVector);
         }
 
-        private void RenderNode(RenderTargetResource target, SceneNode node, ref Vector2f cursorPosition)
+        private void RenderNode(RenderTarget target, SceneNode node, ref Vector2f cursorPosition)
         {
             List<SceneNode> children = node.GetChildren();
             StringBuilder textBuilder = new StringBuilder();
@@ -161,7 +161,7 @@ namespace Weary.Scene
             else
                 textParams.tintColor = Color.White;
 
-            target.DrawText(bodyFont.Get<FontResource>(), textBuilder.ToString(), 16, textParams);
+            target.DrawText(bodyFont.Get<Font>(), textBuilder.ToString(), 16, textParams);
 
             cursorPosition += new Vector2f(0f, lineHeight);
             if (openNodes.Contains(node.uuid))

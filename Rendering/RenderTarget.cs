@@ -4,14 +4,14 @@ using Weary.Resources;
 
 namespace Weary.Rendering
 {
-    public sealed class RenderTargetResource : ResourceBase
+    public sealed class RenderTarget : ResourceBase
     {
         public uint width { get; internal set; }
         public uint height { get; internal set; }
 
         private RenderServer renderServer;
         
-        internal RenderTargetResource(RenderServer server, ResourceManager resman) : base(resman)
+        internal RenderTarget(RenderServer server, ResourceManager resman) : base(resman)
         {
             renderServer = server;
         }
@@ -51,12 +51,12 @@ namespace Weary.Rendering
             renderServer.DisplayRenderTarget(this);
         }
 
-        public void DrawShape(ShapeResource shape, RenderParams renderParams)
+        public void DrawShape(ShapeBase shape, RenderParams renderParams)
         {
             renderServer.DrawShape(this, shape, renderParams);
         }
 
-        public void DrawText(FontResource font, string text, uint fontSize, RenderParams renderParams)
+        public void DrawText(Font font, string text, uint fontSize, RenderParams renderParams)
         {
             renderServer.DrawText(this, font, text, fontSize, renderParams);
         }

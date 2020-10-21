@@ -4,16 +4,16 @@ using SFML.Graphics;
 
 namespace Weary.Resources
 {
-    public sealed class FontResource : ResourceBase
+    public sealed class Font : ResourceBase
     {
-        public Font resource = null;
+        public SFML.Graphics.Font resource = null;
 
-        internal FontResource(ResourceManager manager) : base(manager)
+        internal Font(ResourceManager manager) : base(manager)
         { }
 
         protected internal override void Load(byte[] data)
         {
-            resource = new Font(data);
+            resource = new SFML.Graphics.Font(data);
         }
 
         protected internal override void Unload()

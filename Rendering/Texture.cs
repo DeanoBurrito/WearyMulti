@@ -3,13 +3,13 @@ using Weary.Resources;
 
 namespace Weary.Rendering
 {
-    public class TextureResource : ResourceBase
+    public class Texture : ResourceBase
     {
         protected RenderServer renderServer;
         public uint width { get; internal set; }
         public uint height { get; internal set; }
         
-        internal protected TextureResource(RenderServer server, ResourceManager resman) : base(resman)
+        internal protected Texture(RenderServer server, ResourceManager resman) : base(resman)
         {
             renderServer = server;
         }

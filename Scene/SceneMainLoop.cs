@@ -38,7 +38,7 @@ namespace Weary.Scene
                 visualizer.Update(delta);
         }
 
-        protected override void Render(RenderTargetResource target)
+        protected override void Render(RenderTarget target)
         {
             if (renderVisualizer)
                 visualizer.Render(target);

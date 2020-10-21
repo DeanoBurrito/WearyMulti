@@ -16,32 +16,32 @@ namespace Weary.Resources
             ResourceManager.RegisterResourceLoader
             (
                 new string[] { ".ttf", ".otf" },
-                typeof(FontResource),
-                (ResourceManager rman) => { return new FontResource(rman); }
+                typeof(Font),
+                (ResourceManager rman) => { return new Font(rman); }
             );
             ResourceManager.RegisterResourceLoader
             (
                 new string[] { ".png", ".jpg" },
-                typeof(TextureResource),
-                (ResourceManager rman) => { return new TextureResource(RenderServer.Global, rman); }
+                typeof(Texture),
+                (ResourceManager rman) => { return new Texture(RenderServer.Global, rman); }
             );
             ResourceManager.RegisterResourceLoader
             (
                 new string[0],
-                typeof(RenderTargetResource),
-                (ResourceManager rman) => { return new RenderTargetResource(RenderServer.Global, rman); }
+                typeof(RenderTarget),
+                (ResourceManager rman) => { return new RenderTarget(RenderServer.Global, rman); }
             );
             ResourceManager.RegisterResourceLoader
             (
                 new string[0],
-                typeof(RectShapeResource),
-                (ResourceManager rman) => { return new RectShapeResource(rman); }
+                typeof(RectangleShape),
+                (ResourceManager rman) => { return new RectangleShape(rman); }
             );
             ResourceManager.RegisterResourceLoader
             (
                 new string[0],
-                typeof(CircleShapeResource),
-                (ResourceManager rman) => { return new CircleShapeResource(rman); }
+                typeof(CircleShape),
+                (ResourceManager rman) => { return new CircleShape(rman); }
             );
         }
     }
