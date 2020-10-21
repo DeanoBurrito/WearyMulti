@@ -53,9 +53,9 @@ namespace Weary.Resources
 
         public static void ShowLoaders(string[] args)
         {
-            foreach (KeyValuePair<string, Func<ResourceManager, ResourceBase>> pair in ResourceManager.resLoaderMaps)
+            foreach (KeyValuePair<string, Type> pair in ResourceManager.resLoaderMaps)
             {
-                Log.WriteLine("| LOADER: " + pair.Key);
+                Log.WriteLine("| LOADER: " + pair.Key + " for type " + pair.Value.Name + " (" + pair.Value.FullName + ")");
             }
         }
 

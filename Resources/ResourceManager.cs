@@ -11,7 +11,8 @@ namespace Weary.Resources
         public static ResourceManager Global
         { get; private set; }
 
-        internal static Dictionary<string, Func<ResourceManager, ResourceBase>> resLoaderMaps = new Dictionary<string, Func<ResourceManager, ResourceBase>>();
+        internal static Dictionary<string, Type> resLoaderMaps = new Dictionary<string, Type>();
+        static Dictionary<Type, Func<ResourceManager, ResourceBase>> resCreatorMaps = new Dictionary<Type, Func<ResourceManager, ResourceBase>>();
 
         internal static void Init()
         {
@@ -22,7 +23,7 @@ namespace Weary.Resources
             Global.LoadManifestText("_Data/Manifest.json");
         }
 
-        public static void RegisterResourceLoader(string[] fileExts, Func<ResourceManager, ResourceBase> creatorDelegate)
+        public static void RegisterResourceLoader(string[] fileExts, Type resType, Func<ResourceManager, ResourceBase> creatorDelegate)
         {
             foreach (string ext in fileExts)
             {
@@ -37,8 +38,11 @@ namespace Weary.Resources
                     continue;
                 }
 
-                resLoaderMaps.Add(ext, creatorDelegate);
+                resLoaderMaps.Add(ext, resType);
             }
+
+            if (!resCreatorMaps.ContainsKey(resType))
+                resCreatorMaps.Add(resType, creatorDelegate);
         }
 
         internal UuidManager ridGenerator;
@@ -53,6 +57,11 @@ namespace Weary.Resources
             resources = new Dictionary<ulong, ResourceBase>();
             headers = new Dictionary<string, ResourceHeader>();
             ridToHeaderMap = new Dictionary<ulong, string>();
+        }
+
+        public void Deinit()
+        {
+            //TODO: unload all loaded resources, make sure everything exists cleanly.
         }
 
         public ResourceBase GetResource(ulong rid)
@@ -80,6 +89,36 @@ namespace Weary.Resources
             if (header.loaded)
                 return GetResource(header.loadedId);
             return null; //If we reach here, LoadResource() should have emitted an error anyway.
+        }
+
+        public T CreateResource<T>(string resourceName, byte[] initData = null) where T : ResourceBase
+        {
+            return (T)CreateResource(typeof(T), resourceName);
+        }
+
+        public ResourceBase CreateResource(Type t, string resourceName, byte[] initData = null)
+        {
+            if (!resCreatorMaps.ContainsKey(t))
+            {
+                Log.WriteError("Cannot find creator resource of type " + t.Name + ", no creator delegate exists.");
+                return null;
+            }
+            if (headers.ContainsKey(resourceName))
+            {
+                Log.WriteError("Cannot create resource, name is already in use: " + resourceName);
+                return null;
+            }
+            
+            //TODO: implement a way to get an extension that will map to this creator after loading from a file (maybe just use the type name?)
+            ResourceHeader createdHeader = new ResourceHeader(resourceName, string.Empty, 0, 0, false, t.Name, new Dictionary<string, string>());
+            headers.Add(createdHeader.resourceName, createdHeader);
+            ResourceBase resource = resCreatorMaps[t].Invoke(this);
+            if (initData != null)
+                resource.Load(initData);
+            createdHeader.loaded = true;
+            createdHeader.loadedId = resource.rid;
+
+            return resource;
         }
 
         public void PreloadResources(string[] resourceList)
@@ -143,7 +182,8 @@ namespace Weary.Resources
                 if (!resLoaderMaps.ContainsKey(header.loaderExt))
                     throw new Exception("Loader not found for extension: " + header.loaderExt + ". Unable to load resource: " + resourceName);
 
-                ResourceBase resource = resLoaderMaps[header.loaderExt].Invoke(this);
+                Type resourceType = resLoaderMaps[header.loaderExt];
+                ResourceBase resource = resCreatorMaps[resourceType].Invoke(this);
                 resource.Load(rawData);
                 resources.Add(resource.rid, resource);
                 ridToHeaderMap.Add(resource.rid, header.resourceName);
