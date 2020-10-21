@@ -122,8 +122,6 @@ namespace Weary.Debug
             RenderParams textLineParams = new RenderParams();
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
-                textLineParams.position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
-
                 if (i == historyShowStart && historyShowStart > 0)
                     textLineParams.tintColor = new Color(0.5f, 0.5f, 0.5f);
                 else if (terminalHistory[i].Contains("[ERROR]"))
@@ -131,6 +129,7 @@ namespace Weary.Debug
                 else
                     textLineParams.tintColor = Color.White;
                     
+                textLineParams.position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
                 target.DrawText(textFont.Get<FontResource>(), terminalHistory[i], textFontSize, textLineParams);
             }
 
@@ -143,6 +142,7 @@ namespace Weary.Debug
             {
                 RenderParams cursorParams = new RenderParams();
                 cursorParams.tintColor = Color.White;
+                
                 Vector2f currLineBounds = RenderServer.Global.GetTextBounds(textFont.Get<FontResource>(), ">>> " +  currentLine.ToString(), textFontSize);
                 cursorParams.position = new Vector2f(currLineBounds.x + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
                 target.DrawShape(cursorRect, cursorParams);
