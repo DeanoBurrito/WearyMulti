@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using SFML.Window;
-using SFML.Graphics;
 using Weary.Resources;
+using Weary.Rendering;
 
 namespace Weary.Debug
 {
@@ -28,6 +28,8 @@ namespace Weary.Debug
 
         private float lineHeight = 18f;
         private uint textFontSize = 14;
+        private RectShapeResource backgroundRect;
+        private RectShapeResource cursorRect;
 
         private int maxLogDequeueChunk = 100; //max number of log messages to read in a single frame, creates logging incoherency (only in terminal) but prevents infinite loops
         private int scrollOffset = 0;
@@ -41,6 +43,10 @@ namespace Weary.Debug
         {
             BuiltInCommands.Init();
             textFont = ResourceManager.Global.GetRef("Fonts/NotoMono_Regular.ttf");
+            backgroundRect = ResourceManager.Global.CreateResource<RectShapeResource>("Runtime/DebugTerminal/Background");
+            cursorRect = ResourceManager.Global.CreateResource<RectShapeResource>("Runtime/DebugTerminal/Cursor");
+            cursorRect.width = 2f;
+            cursorRect.height = cursorHeight;
 
             Log.OnWriteLine += (string msg) => { unreadLogOutput.Enqueue("[LOG] " + msg); };
             Log.OnWriteError += (string msg) => { unreadLogOutput.Enqueue("[ERROR] " + msg); };
@@ -90,18 +96,21 @@ namespace Weary.Debug
             }
         }
 
-        public void Render(RenderTarget target)
+        public void Render(RenderTargetResource target)
         {
             if (!isVisible)
                 return;
 
-            RectangleShape background = new RectangleShape();
-            background.FillColor = new Color(20, 20, 20);
-            background.Position = new SFML.System.Vector2f(0f, 0f);
-            background.Size = new SFML.System.Vector2f(target.Size.X, target.Size.Y / 2f);
-            target.Draw(background);
+            RenderParams bgRenderParams = new RenderParams();
+            bgRenderParams.tintColor = new Color(0.1f, 0.1f, 0.1f);
+            bgRenderParams.position = Vector2f.Zero;
 
-            float historyDrawableHeight = background.Size.Y - (lineHeight * 2f);
+            backgroundRect.width = target.width;
+            backgroundRect.height = target.height / 2f;
+            
+            target.DrawShape(backgroundRect, bgRenderParams);
+
+            float historyDrawableHeight = backgroundRect.height - (lineHeight * 2f);
             int historyShowStart = terminalHistory.Count - (int)(historyDrawableHeight / lineHeight) - scrollOffset;
             if (historyShowStart < 0)
                 historyShowStart = 0;
@@ -110,35 +119,33 @@ namespace Weary.Debug
             if (historyShowEnd > terminalHistory.Count)
                 historyShowEnd = terminalHistory.Count;
 
-            Text textLine = new Text("", textFont.Get<FontResource>().resource, textFontSize);
+            RenderParams textLineParams = new RenderParams();
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
-                textLine.DisplayedString = terminalHistory[i];
-                textLine.Position = new SFML.System.Vector2f(2f, (i - historyShowStart) * lineHeight);
+                textLineParams.position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
 
                 if (i == historyShowStart && historyShowStart > 0)
-                    textLine.FillColor = new Color(180, 180, 180, 180);
+                    textLineParams.tintColor = new Color(0.5f, 0.5f, 0.5f);
                 else if (terminalHistory[i].Contains("[ERROR]"))
-                    textLine.FillColor = Color.Red;
+                    textLineParams.tintColor = Color.Red;
                 else
-                    textLine.FillColor = Color.White;
+                    textLineParams.tintColor = Color.White;
                     
-                target.Draw(textLine);
+                target.DrawText(textFont.Get<FontResource>(), terminalHistory[i], textFontSize, textLineParams);
             }
 
-            float currentLineY = background.Size.Y - (lineHeight * 1.5f);
-            textLine.FillColor = Color.White;
-            textLine.Position = new SFML.System.Vector2f(2f, currentLineY);
-            textLine.DisplayedString = ">>> " + currentLine.ToString();
-            target.Draw(textLine);
+            float currentLineY = backgroundRect.height - (lineHeight * 1.5f);
+            textLineParams.tintColor = Color.White;
+            textLineParams.position = new Vector2f(2f, currentLineY);
+            target.DrawText(textFont.Get<FontResource>(), ">>> " + currentLine.ToString(), textFontSize, textLineParams);
 
             if (cursorVisible)
             {
-                RectangleShape cursorRect = new RectangleShape();
-                cursorRect.FillColor = Color.White;
-                cursorRect.Position = new SFML.System.Vector2f(textLine.GetLocalBounds().Width + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
-                cursorRect.Size = new SFML.System.Vector2f(2f, cursorHeight);
-                target.Draw(cursorRect);
+                RenderParams cursorParams = new RenderParams();
+                cursorParams.tintColor = Color.White;
+                Vector2f currLineBounds = RenderServer.Global.GetTextBounds(textFont.Get<FontResource>(), ">>> " +  currentLine.ToString(), textFontSize);
+                cursorParams.position = new Vector2f(currLineBounds.x + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
+                target.DrawShape(cursorRect, cursorParams);
             }
         }
 

@@ -38,11 +38,10 @@ namespace Weary.Scene
                 visualizer.Update(delta);
         }
 
-        protected override void Render(Window window)
+        protected override void Render(RenderTargetResource target)
         {
-            SFML.Graphics.RenderWindow sfWindow = (WindowServer.Global as Weary.Backends.SF.SFWindowServer).GetRenderWindow(window);
             if (renderVisualizer)
-                visualizer.Render(sfWindow);
+                visualizer.Render(target);
         }
 
         protected override void HandleExitRequest()

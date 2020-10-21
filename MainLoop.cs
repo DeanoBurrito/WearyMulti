@@ -11,6 +11,7 @@ namespace Weary
         private readonly float fixedUpdateStep = 1f / 60f;
         private bool keepRunning = true;
         private Window mainWindow;
+        private RenderTargetResource mainRenderTarget;
         private DebugTerminal debugTerminal;
 
         public MainLoop()
@@ -28,7 +29,7 @@ namespace Weary
                 if (keepRunning)
                     FixedUpdate(delta);
                 if (keepRunning)
-                    RenderInternal(mainWindow);
+                    RenderInternal(mainRenderTarget);
 
                 //TODO: hack, fix this
                 System.Threading.Thread.Sleep((int)(fixedUpdateStep * 1000f));
@@ -52,9 +53,13 @@ namespace Weary
             ResourceManager.Init();
             Input.Init(true);
             new SFWindowServer().Init();
+            new SFRenderServer().Init();
 
             mainWindow = WindowServer.Global.CreateWindow(1600, 900, false, "Weary (now with servers!)");
             mainWindow.onDestroy += HandleExitInternal;
+
+            mainRenderTarget = ResourceManager.Global.CreateResource<RenderTargetResource>("Runtime/WindowRenderTarget");
+            RenderServer.Global.BindRenderTarget(mainRenderTarget, mainWindow);
 
             debugTerminal = new DebugTerminal();
             (WindowServer.Global as SFWindowServer).GetRenderWindow(mainWindow).TextEntered += debugTerminal.HandleWindowTextEntered;
@@ -72,6 +77,7 @@ namespace Weary
             Deinit();
 
             WindowServer.Global.Deinit();
+            ResourceManager.Global.Deinit();
         }
 
         protected virtual void Update(DeltaTime delta)
@@ -90,18 +96,17 @@ namespace Weary
         protected virtual void FixedUpdate(DeltaTime delta)
         {}
 
-        private void RenderInternal(Window window)
+        private void RenderInternal(RenderTargetResource target)
         {   
-            SFML.Graphics.RenderWindow sfWindow = (WindowServer.Global as SFWindowServer).GetRenderWindow(mainWindow);
-            sfWindow.Clear(SFML.Graphics.Color.Black);
+            target.Clear(Color.Black);
 
-            Render(window);
-            debugTerminal.Render(sfWindow);
+            Render(target);
+            debugTerminal.Render(target);
 
-            sfWindow.Display();
+            target.Display();
         }
 
-        protected virtual void Render(Window window)
+        protected virtual void Render(RenderTargetResource target)
         {}
 
         protected virtual void HandleExitRequest()

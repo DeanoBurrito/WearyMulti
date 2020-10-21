@@ -25,6 +25,24 @@ namespace Weary.Resources
                 typeof(TextureResource),
                 (ResourceManager rman) => { return new TextureResource(RenderServer.Global, rman); }
             );
+            ResourceManager.RegisterResourceLoader
+            (
+                new string[0],
+                typeof(RenderTargetResource),
+                (ResourceManager rman) => { return new RenderTargetResource(RenderServer.Global, rman); }
+            );
+            ResourceManager.RegisterResourceLoader
+            (
+                new string[0],
+                typeof(RectShapeResource),
+                (ResourceManager rman) => { return new RectShapeResource(rman); }
+            );
+            ResourceManager.RegisterResourceLoader
+            (
+                new string[0],
+                typeof(CircleShapeResource),
+                (ResourceManager rman) => { return new CircleShapeResource(rman); }
+            );
         }
     }
 }

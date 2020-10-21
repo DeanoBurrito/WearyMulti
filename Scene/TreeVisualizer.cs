@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SFML.Graphics;
+using Weary.Rendering;
 using Weary.Resources;
 
 namespace Weary.Scene
@@ -129,25 +129,23 @@ namespace Weary.Scene
             }
         }
 
-        public void Render(RenderTarget target)
+        public void Render(RenderTargetResource target)
         {
             if (tree == null)
             {
-                Text noDisplayText = new Text("Tree is null, nothing to display.", bodyFont.Get<FontResource>().resource);
-                noDisplayText.Position = new SFML.System.Vector2f(50f, 50f);
-                noDisplayText.FillColor = Color.Red;
-                target.Draw(noDisplayText);
+                RenderParams textParams = new RenderParams();
+                textParams.tintColor = Color.Red;
+                textParams.position = new Vector2f(50f, 50f);
+                target.DrawText(bodyFont.Get<FontResource>(), "Tree is null, nothing to display", 16, textParams);
 
-                //this is great for resource usage I'm sure
-                noDisplayText.Dispose();
                 return;
             }
 
-            SFML.System.Vector2f refVector = new SFML.System.Vector2f(0f, 0f);
+            Vector2f refVector = Vector2f.Zero;
             RenderNode(target, tree.root, ref refVector);
         }
 
-        private void RenderNode(RenderTarget target, SceneNode node, ref SFML.System.Vector2f cursorPosition)
+        private void RenderNode(RenderTargetResource target, SceneNode node, ref Vector2f cursorPosition)
         {
             List<SceneNode> children = node.GetChildren();
             StringBuilder textBuilder = new StringBuilder();
@@ -155,28 +153,27 @@ namespace Weary.Scene
             textBuilder.Append("[" + node.name + ", " + children.Count + " children] ");
             textBuilder.Append("");
 
-            Text nodeText = new Text(textBuilder.ToString(), bodyFont.Get<FontResource>().resource);
-            nodeText.Position = new SFML.System.Vector2f(hScrollOffset, vScrollOffset) + cursorPosition;
-            nodeText.CharacterSize = 16;
+            RenderParams textParams = new RenderParams();
+            textParams.position = new Vector2f(hScrollOffset, vScrollOffset) + cursorPosition;
 
             if (node.uuid == selectedNode)
-                nodeText.FillColor = new Color(0, 170, 255);
+                textParams.tintColor = new Color(0f, 0.5f, 1f);
             else
-                nodeText.FillColor = Color.White;
+                textParams.tintColor = Color.White;
 
-            target.Draw(nodeText);
+            target.DrawText(bodyFont.Get<FontResource>(), textBuilder.ToString(), 16, textParams);
 
-            cursorPosition += new SFML.System.Vector2f(0f, lineHeight);
+            cursorPosition += new Vector2f(0f, lineHeight);
             if (openNodes.Contains(node.uuid))
             {
                 if (children.Count > 0)
                 {
-                    cursorPosition += new SFML.System.Vector2f(indentAmount, 0f);
+                    cursorPosition += new Vector2f(indentAmount, 0f);
                     for (int i = 0; i < children.Count; i++)
                     {
                         RenderNode(target, children[i], ref cursorPosition);
                     }
-                    cursorPosition -= new SFML.System.Vector2f(indentAmount, 0f);
+                    cursorPosition -= new Vector2f(indentAmount, 0f);
                 }
             }
         }

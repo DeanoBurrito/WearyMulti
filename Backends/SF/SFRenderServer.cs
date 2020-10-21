@@ -15,11 +15,24 @@ namespace Weary.Backends.SF
         public override void Init()
         {
             Log.WriteLine("Initialising SFML-based render server.");
+            if (Global == null)
+                Global = this;
+            else
+                Log.WriteError("Render server is already running and marked as global. This instance will continue, this use case is unsupported.");
         }
 
         public override void Deinit()
         {
             Log.WriteLine("Deinitialising SFML-based render server.");
+            if (Global == this)
+                Global = null;
+            
+            foreach (var pair in renderTargets)
+            {
+                DestroyRenderTarget(pair.Value.wryTarget);
+            }
+
+            HandleEvents();
         }
 
         public override void HandleEvents()
@@ -30,7 +43,11 @@ namespace Weary.Backends.SF
                 {
                     RenderTarget sfRenderTarget = (RenderTarget)destructionPending[i].sfRes;
                     Log.WriteLine("SFML rendertarget destroyed: rid=" + wryRenderTarget.rid);
-                    //TODO: implement destroying rendertargets
+
+                    //we're leaving render windows alone here, as those will be handled by the window server.
+                    if (sfRenderTarget is RenderTexture sfTex)
+                        sfTex.Dispose();
+                    sfTex = null;
                 }
             }
             destructionPending.Clear();
@@ -68,6 +85,29 @@ namespace Weary.Backends.SF
         private void RenderCircleShape(RenderTargetResource targt, CircleShapeResource shape, RenderParams renderParams)
         {}
 
+        public override void DrawText(RenderTargetResource target, FontResource font, string text, uint fontSize, RenderParams renderParams)
+        {
+            RenderTarget sfTarget = GetValidRenderTarget(target);
+            if (sfTarget == null)
+                return;
+            
+            Text sfText = new Text(text, font.resource, fontSize);
+            sfText.Position = new SFML.System.Vector2f(renderParams.position.x, renderParams.position.y);
+            sfText.FillColor = GetSfmlColor(renderParams.tintColor);
+            
+            sfTarget.Draw(sfText);
+            sfText.Dispose();
+        }
+
+        public override Vector2f GetTextBounds(FontResource font, string text, uint fontSize)
+        {
+            Text sfText = new Text(text, font.resource, fontSize);
+            FloatRect bounds = sfText.GetLocalBounds();
+            sfText.Dispose();
+            
+            return new Vector2f(bounds.Width, bounds.Height);
+        }
+
         public override void InitTexture(TextureResource texture, uint w, uint h)
         {}
 
@@ -83,6 +123,8 @@ namespace Weary.Backends.SF
             }
 
             RenderTexture sfTarget = new RenderTexture(w, h);
+            target.width = sfTarget.Size.X;
+            target.height = sfTarget.Size.Y;
             renderTargets.Add(target.rid, (target, sfTarget));
 
             Log.WriteLine("New SFML rendertarget initialized: w=" + w + ", h=" + h + ", rid=" + target.rid);
@@ -93,6 +135,8 @@ namespace Weary.Backends.SF
             if (WindowServer.Global is SFWindowServer sfWindowServer)
             {
                 RenderWindow sfRenderWindow = sfWindowServer.GetRenderWindow(window);
+                target.width = sfRenderWindow.Size.X;
+                target.height = sfRenderWindow.Size.Y;
                 renderTargets.Add(target.rid, (target, sfRenderWindow));
                 
                 Log.WriteLine("New SFML rendertarget bound to window (id=" + window.windowId + ", title=" + window.title + "), rid=" + target.rid);

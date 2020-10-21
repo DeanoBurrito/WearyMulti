@@ -50,5 +50,15 @@ namespace Weary.Rendering
         {
             renderServer.DisplayRenderTarget(this);
         }
+
+        public void DrawShape(ShapeResource shape, RenderParams renderParams)
+        {
+            renderServer.DrawShape(this, shape, renderParams);
+        }
+
+        public void DrawText(FontResource font, string text, uint fontSize, RenderParams renderParams)
+        {
+            renderServer.DrawText(this, font, text, fontSize, renderParams);
+        }
     }
 }

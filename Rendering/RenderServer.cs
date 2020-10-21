@@ -12,6 +12,8 @@ namespace Weary.Rendering
         public abstract void HandleEvents();
 
         public abstract void DrawShape(RenderTargetResource target, ShapeResource shape, RenderParams renderParams);
+        public abstract void DrawText(RenderTargetResource target, FontResource font, string text, uint fontSize, RenderParams renderParams);
+        public abstract Vector2f GetTextBounds(FontResource font, string text, uint fontSize);
         
         public abstract void InitTexture(TextureResource texture, uint w, uint h);
         public abstract void DestroyTexture(TextureResource texture);
