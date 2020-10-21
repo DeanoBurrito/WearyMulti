@@ -2,7 +2,7 @@ using System;
 
 namespace Weary
 {
-    public sealed class Vector2i
+    public struct Vector2i
     {
         public static readonly Vector2i Zero = new Vector2i(0, 0);
         public static readonly Vector2i One = new Vector2i(1, 1);
@@ -48,7 +48,7 @@ namespace Weary
         }
     }
 
-    public sealed class Vector2f
+    public struct Vector2f
     {
         public static readonly Vector2f Zero = new Vector2f(0f, 0f);
         public static readonly Vector2f One = new Vector2f(1f, 1f);
