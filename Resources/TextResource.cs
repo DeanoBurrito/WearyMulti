@@ -7,7 +7,7 @@ namespace Weary.Resources
     {
         public string resource = string.Empty;
         
-        public TextResource(ResourceManager manager) : base(manager)
+        internal TextResource(ResourceManager manager) : base(manager)
         {}
 
         protected internal override void Load(byte[] data)

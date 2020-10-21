@@ -8,7 +8,7 @@ namespace Weary.Resources
     {
         public Font resource = null;
 
-        public FontResource(ResourceManager manager) : base(manager)
+        internal FontResource(ResourceManager manager) : base(manager)
         { }
 
         protected internal override void Load(byte[] data)
