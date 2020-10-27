@@ -21,9 +21,14 @@ namespace Weary.Resources
         protected internal virtual void Edit(byte[] data, int offset = 0) 
         {}
 
-        protected internal ResourceHeader GetHeader()
+        public ResourceHeader GetHeader()
         {
             return resman.GetHeader(rid);
+        }
+
+        public ResourceRef GetRef()
+        {
+            return new ResourceRef(rid, resman);
         }
     }
 }
