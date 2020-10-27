@@ -109,7 +109,6 @@ namespace Weary.Resources
                 return null;
             }
             
-            //TODO: implement a way to get an extension that will map to this creator after loading from a file (maybe just use the type name?)
             ResourceHeader createdHeader = new ResourceHeader(resourceName, string.Empty, 0, 0, false, t.Name, new Dictionary<string, string>());
             headers.Add(createdHeader.resourceName, createdHeader);
             ResourceBase resource = resCreatorMaps[t].Invoke(this);
