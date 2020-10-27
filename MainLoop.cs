@@ -76,6 +76,7 @@ namespace Weary
 
             Deinit();
 
+            RenderServer.Global.Deinit();
             WindowServer.Global.Deinit();
             ResourceManager.Global.Deinit();
         }
