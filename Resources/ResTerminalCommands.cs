@@ -9,6 +9,7 @@ namespace Weary.Resources
         internal static void RegisterCommands()
         {
             DebugTerminal.RegisterCommand("lsmanifest", "Shows the current resource manager manifest.", LsManifest);
+            DebugTerminal.RegisterCommand("savemanifest", "Saves the current manifest to a file, and writes all used resources to a binary.", SaveManifest);
             DebugTerminal.RegisterCommand("load", "Forces a resource to be loaded.", Load);
             DebugTerminal.RegisterCommand("unload", "Unloads a resource. Note this is instant and WILL WORK ON CURRENTLY USED RESOURCES.", Unload);
             DebugTerminal.RegisterCommand("showloaders", "Lists all current resource parsers", ShowLoaders);
@@ -24,6 +25,17 @@ namespace Weary.Resources
             {
                 Log.WriteLine(header.ToString());
             }
+        }
+
+        public static void SaveManifest(string[] args)
+        {
+            List<ResourceHeader> headers = ResourceManager.Global.GetHeaders();
+            List<string> headerNames = new List<string>();
+            foreach (ResourceHeader h in headers)
+                headerNames.Add(h.resourceName);
+            
+            ResourceManager.Global.SaveManifestText("_Data/DebugManifest.json", headerNames.ToArray(), true);
+            Log.WriteLine("Current manifest saved to _Data/DebugManifest.json");
         }
 
         public static void Load(string[] args)

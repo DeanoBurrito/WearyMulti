@@ -395,7 +395,7 @@ namespace Weary.Resources
                 using (FileStream fstream = File.OpenWrite(outputName))
                 using (Utf8JsonWriter writer = new Utf8JsonWriter(fstream))
                 {
-                    WriteManifest(writer, resourceList);
+                    WriteManifest(writer, resourceList, Path.GetDirectoryName(outputName) + Path.DirectorySeparatorChar);
                 }
             }
             catch (Exception e)
@@ -429,7 +429,7 @@ namespace Weary.Resources
                 {
                     using (Utf8JsonWriter writer = new Utf8JsonWriter(memFile))
                     {
-                        WriteManifest(writer, resourceList);
+                        WriteManifest(writer, resourceList, Path.GetDirectoryName(outputName) + Path.DirectorySeparatorChar);
                     }
 
                     File.WriteAllBytes(outputName, memFile.ToArray());
@@ -442,7 +442,7 @@ namespace Weary.Resources
             }
         }
 
-        private void WriteManifest(Utf8JsonWriter writer, string[] headerNames)
+        private void WriteManifest(Utf8JsonWriter writer, string[] headerNames, string relativePath)
         { 
             writer.WriteStartObject();
 
@@ -458,19 +458,22 @@ namespace Weary.Resources
                 if (!headers.ContainsKey(headerStr))
                     continue;
                 
-                WriteManifestEntry(writer, headers[headerStr]);
+                WriteManifestEntry(writer, headers[headerStr], relativePath);
             }
             writer.WriteEndArray();
 
             writer.WriteEndObject();
         }
 
-        private void WriteManifestEntry(Utf8JsonWriter writer, ResourceHeader header)
+        private void WriteManifestEntry(Utf8JsonWriter writer, ResourceHeader header, string relativePath)
         {
             writer.WriteStartObject();
 
             writer.WriteString("Name", header.resourceName);
-            writer.WriteString("Filename", header.filename);
+            if (header.filename.StartsWith(relativePath))
+                writer.WriteString("Filename", header.filename.Remove(0, relativePath.Length));
+            else
+                writer.WriteString("Filename", header.filename);
             writer.WriteNumber("FileStart", header.fileStart);
             writer.WriteNumber("FileLength", header.fileLength);
             writer.WriteBoolean("CanUnload", header.canUnload);
