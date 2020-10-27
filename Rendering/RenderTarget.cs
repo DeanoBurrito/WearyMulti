@@ -11,7 +11,7 @@ namespace Weary.Rendering
 
         private RenderServer renderServer;
         internal ulong textureRid;
-        
+
         internal RenderTarget(RenderServer server, ResourceManager resman) : base(resman)
         {
             renderServer = server;
@@ -22,13 +22,20 @@ namespace Weary.Rendering
             uint nWidth;
             uint nHeight;
 
-            using (MemoryStream mem = new MemoryStream(data))
-            using (BinaryReader reader = new BinaryReader(mem))
+            if (data.Length == 0)
             {
-                nWidth = reader.ReadUInt32();
-                nHeight = reader.ReadUInt32();
+                nWidth = nHeight = 1;
             }
-            
+            else
+            {
+                using (MemoryStream mem = new MemoryStream(data))
+                using (BinaryReader reader = new BinaryReader(mem))
+                {
+                    nWidth = reader.ReadUInt32();
+                    nHeight = reader.ReadUInt32();
+                }
+            }
+
             renderServer.InitRenderTarget(this, nWidth, nHeight);
         }
 

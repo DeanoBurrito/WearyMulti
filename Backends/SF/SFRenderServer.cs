@@ -227,12 +227,16 @@ namespace Weary.Backends.SF
             target.height = sfTarget.Size.Y;
             renderTargets.Add(target.rid, (target, sfTarget));
 
-            //MASSIVE HACK right here. (this is only temporary, so I keep telling myself.)
             Texture wryTexture = ResourceManager.Global.CreateResource<Texture>("BlindRenderTextures/" + target.rid.ToString() + "_SFML");
             wryTexture.width = sfTarget.Size.X;
             wryTexture.height = sfTarget.Size.Y;
-            textures.Add(wryTexture.rid, (wryTexture, sfTarget.Texture));
             target.textureRid = wryTexture.rid;
+            Log.WriteLine("Texture (rid=" + wryTexture.rid + ") bound to rendertarget, resized to: w=" + wryTexture.width + ", h=" + wryTexture.height);
+
+            //update where the wryTexture maps to
+            destructionPending.Add((null, textures[wryTexture.rid].sfTexture));
+            textures.Remove(wryTexture.rid);
+            textures.Add(wryTexture.rid, (wryTexture, sfTarget.Texture));
 
             Log.WriteLine("New SFML rendertarget initialized: w=" + w + ", h=" + h + ", rid=" + target.rid);
         }
@@ -244,6 +248,10 @@ namespace Weary.Backends.SF
                 SFML.Graphics.RenderWindow sfRenderWindow = sfWindowServer.GetRenderWindow(window);
                 target.width = sfRenderWindow.Size.X;
                 target.height = sfRenderWindow.Size.Y;
+
+                //destroy original sfTarget (since we're replacing it), but keep original wryRef. Replace in-place.
+                destructionPending.Add((null, renderTargets[target.rid].sfTarget));
+                renderTargets.Remove(target.rid);
                 renderTargets.Add(target.rid, (target, sfRenderWindow));
 
                 Log.WriteLine("New SFML rendertarget bound to window (id=" + window.windowId + ", title=" + window.title + "), rid=" + target.rid);

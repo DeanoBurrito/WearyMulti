@@ -93,7 +93,7 @@ namespace Weary.Resources
 
         public T CreateResource<T>(string resourceName, byte[] initData = null) where T : ResourceBase
         {
-            return (T)CreateResource(typeof(T), resourceName);
+            return (T)CreateResource(typeof(T), resourceName, initData);
         }
 
         public ResourceBase CreateResource(Type t, string resourceName, byte[] initData = null)
@@ -111,9 +111,12 @@ namespace Weary.Resources
             
             ResourceHeader createdHeader = new ResourceHeader(resourceName, string.Empty, 0, 0, false, t.Name, new Dictionary<string, string>());
             headers.Add(createdHeader.resourceName, createdHeader);
+
             ResourceBase resource = resCreatorMaps[t].Invoke(this);
-            if (initData != null)
-                resource.Load(initData);
+            if (initData == null)
+                initData = new byte[0];
+            resource.Load(initData);
+            resources.Add(resource.rid, resource);
             createdHeader.loaded = true;
             createdHeader.loadedId = resource.rid;
 
@@ -298,7 +301,7 @@ namespace Weary.Resources
             if (jroot.TryGetProperty("Description", out JsonElement descProp))
                 packageDesc = descProp.GetString();
             if (jroot.TryGetProperty("Author", out JsonElement authorProp))
-                packageAuthor = descProp.GetString();
+                packageAuthor = authorProp.GetString();
             if (jroot.TryGetProperty("Version", out JsonElement versionProp))
                 packageVersion = new Version(versionProp.GetString());
             Log.WriteLine($"Loading manifest: {packageName} by {packageAuthor} (v {packageVersion.ToString(3)}), {packageDesc}");

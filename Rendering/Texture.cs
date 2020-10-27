@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Weary.Resources;
 
 namespace Weary.Rendering
@@ -16,8 +17,22 @@ namespace Weary.Rendering
 
         protected internal override void Load(byte[] data)
         {
-            renderServer.InitTexture(this, 0, 0);
-            throw new NotImplementedException();
+            uint nWidth;
+            uint nHeight;
+            if (data.Length == 0)
+            {
+                nWidth = nHeight = 1;
+            }
+            else
+            {
+                using (MemoryStream mem = new MemoryStream(data))
+                using (BinaryReader reader = new BinaryReader(mem))
+                {
+                    nWidth = reader.ReadUInt32();
+                    nHeight = reader.ReadUInt32();
+                }
+            }
+            renderServer.InitTexture(this, nWidth, nHeight);
         }
 
         protected internal override void Unload()

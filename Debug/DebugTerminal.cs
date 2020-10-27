@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
+using System.IO;
 using SFML.Window;
 using Weary.Resources;
 using Weary.Rendering;
@@ -31,6 +32,8 @@ namespace Weary.Debug
         private RectangleShape backgroundRect;
         private RectangleShape cursorRect;
 
+        private RenderTarget renderTarget;
+
         private int maxLogDequeueChunk = 100; //max number of log messages to read in a single frame, creates logging incoherency (only in terminal) but prevents infinite loops
         private int scrollOffset = 0;
 
@@ -42,6 +45,23 @@ namespace Weary.Debug
         internal DebugTerminal()
         {
             BuiltInCommands.Init();
+
+            byte[] renderTargetInitData;
+            RenderTarget windowRt = (RenderTarget)ResourceManager.Global.GetResource("Runtime/WindowRenderTarget");
+            if (windowRt == null)
+            {
+                Log.FatalError("DebugTerminal could not obtain main rendertarget to get window size.");
+                return;
+            }
+
+            using (MemoryStream mem = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(mem))
+            {
+                writer.Write(windowRt.width); 
+                writer.Write((windowRt.height / 3) * 2);
+                renderTargetInitData = mem.ToArray();
+            }
+            renderTarget = ResourceManager.Global.CreateResource<RenderTarget>("Runtime/DebugTerminal/RenderTarget", renderTargetInitData);
             textFont = ResourceManager.Global.GetRef("Fonts/NotoMono_Regular.ttf");
             backgroundRect = ResourceManager.Global.CreateResource<RectangleShape>("Runtime/DebugTerminal/Background");
             cursorRect = ResourceManager.Global.CreateResource<RectangleShape>("Runtime/DebugTerminal/Cursor");
@@ -101,14 +121,16 @@ namespace Weary.Debug
             if (!isVisible)
                 return;
 
+            renderTarget.Clear(Color.Black);
+
             RenderParams bgRenderParams = new RenderParams();
             bgRenderParams.tintColor = new Color(0.1f, 0.1f, 0.1f);
             bgRenderParams.position = Vector2f.Zero;
 
-            backgroundRect.width = target.width;
-            backgroundRect.height = target.height / 2f;
+            backgroundRect.width = renderTarget.width;
+            backgroundRect.height = renderTarget.height;
             
-            target.DrawShape(backgroundRect, bgRenderParams);
+            renderTarget.DrawShape(backgroundRect, bgRenderParams);
 
             float historyDrawableHeight = backgroundRect.height - (lineHeight * 2f);
             int historyShowStart = terminalHistory.Count - (int)(historyDrawableHeight / lineHeight) - scrollOffset;
@@ -130,13 +152,13 @@ namespace Weary.Debug
                     textLineParams.tintColor = Color.White;
                     
                 textLineParams.position = new Vector2f(2f, (i - historyShowStart) * lineHeight);
-                target.DrawText(textFont.Get<Font>(), terminalHistory[i], textFontSize, textLineParams);
+                renderTarget.DrawText(textFont.Get<Font>(), terminalHistory[i], textFontSize, textLineParams);
             }
 
             float currentLineY = backgroundRect.height - (lineHeight * 1.5f);
             textLineParams.tintColor = Color.White;
             textLineParams.position = new Vector2f(2f, currentLineY);
-            target.DrawText(textFont.Get<Font>(), ">>> " + currentLine.ToString(), textFontSize, textLineParams);
+            renderTarget.DrawText(textFont.Get<Font>(), ">>> " + currentLine.ToString(), textFontSize, textLineParams);
 
             if (cursorVisible)
             {
@@ -145,8 +167,11 @@ namespace Weary.Debug
                 
                 Vector2f currLineBounds = RenderServer.Global.GetTextBounds(textFont.Get<Font>(), ">>> " +  currentLine.ToString(), textFontSize);
                 cursorParams.position = new Vector2f(currLineBounds.x + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
-                target.DrawShape(cursorRect, cursorParams);
+                renderTarget.DrawShape(cursorRect, cursorParams);
             }
+
+            renderTarget.Display();
+            target.DrawTexture(renderTarget.GetTexture().Get<Texture>(), new RenderParams());
         }
 
         internal void HandleWindowTextEntered(object sender, TextEventArgs e)
