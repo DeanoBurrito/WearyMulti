@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using System.IO;
-using SFML.Window;
 using Weary.Resources;
 using Weary.Rendering;
 
@@ -174,7 +173,7 @@ namespace Weary.Debug
             target.DrawTexture(renderTarget.GetTexture().Get<Texture>(), new RenderParams());
         }
 
-        internal void HandleWindowTextEntered(object sender, TextEventArgs e)
+        internal void HandleWindowTextEntered(object sender, SFML.Window.TextEventArgs e)
         {
             if (!isVisible)
                 return;
