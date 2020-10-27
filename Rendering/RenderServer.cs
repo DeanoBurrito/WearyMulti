@@ -21,6 +21,7 @@ namespace Weary.Rendering
         public abstract Vector2f GetTextBounds(Font font, string text, uint fontSize);
         
         public abstract void InitTexture(Texture texture, uint w, uint h);
+        public abstract void InitTexture(Texture texture, byte[] data);
         public abstract void DestroyTexture(Texture texture);
         public abstract void SetTextureData(Texture texture, byte[] data);
         

@@ -17,22 +17,27 @@ namespace Weary.Rendering
 
         protected internal override void Load(byte[] data)
         {
-            uint nWidth;
-            uint nHeight;
             if (data.Length == 0)
             {
-                nWidth = nHeight = 1;
+                renderServer.InitTexture(this, 1, 1);
             }
-            else
+            else if (data.Length == sizeof(UInt32) * 2)
             {
+                uint nWidth;
+                uint nHeight;
+
                 using (MemoryStream mem = new MemoryStream(data))
                 using (BinaryReader reader = new BinaryReader(mem))
                 {
                     nWidth = reader.ReadUInt32();
                     nHeight = reader.ReadUInt32();
                 }
+                renderServer.InitTexture(this, nWidth, nHeight);
             }
-            renderServer.InitTexture(this, nWidth, nHeight);
+            else
+            {
+                renderServer.InitTexture(this, data);
+            }
         }
 
         protected internal override void Unload()

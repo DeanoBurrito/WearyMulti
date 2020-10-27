@@ -191,7 +191,23 @@ namespace Weary.Backends.SF
             texture.height = sfTexture.Size.Y;
             textures.Add(texture.rid, (texture, sfTexture));
 
-            Log.WriteLine("New SFML texture initialized: w=" + w + ", h=" + h + ", rid=" + texture.rid);
+            Log.WriteLine("New SFML texture initialized (no data): w=" + w + ", h=" + h + ", rid=" + texture.rid);
+        }
+
+        public override void InitTexture(Texture texture, byte[] data)
+        {
+            if (textures.ContainsKey(texture.rid))
+            {
+                Log.WriteError("Invalid texture to init: texture is already bound to existing data. Please destroy the current one before reuse.");
+                return;
+            }
+
+            SFML.Graphics.Texture sfTexture = new SFML.Graphics.Texture(data);
+            texture.width = sfTexture.Size.X;
+            texture.height = sfTexture.Size.Y;
+            textures.Add(texture.rid, (texture, sfTexture));
+
+            Log.WriteLine("New SFML texture initialized with data: w=" + texture.width + ", h=" + texture.height + ", rid=" + texture.rid);
         }
 
         public override void DestroyTexture(Texture texture)
