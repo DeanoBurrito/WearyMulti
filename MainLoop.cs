@@ -52,8 +52,8 @@ namespace Weary
 
             ResourceManager.Init();
             Input.Init(true);
-            new SFInputServer().Init();
             new SFWindowServer().Init();
+            new SFInputServer().Init();
             new SFRenderServer().Init();
 
             mainWindow = WindowServer.Global.CreateWindow(1600, 900, false, "Weary (now with servers!)");
@@ -89,6 +89,8 @@ namespace Weary
         private void UpdateInternal(DeltaTime delta)
         {
             WindowServer.Global.HandleEvents();
+            InputServer.Global.HandleEvents();
+            RenderServer.Global.HandleEvents();
 
             Input.Update(delta);
             debugTerminal.Update(delta);
