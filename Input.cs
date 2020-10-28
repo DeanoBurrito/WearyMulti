@@ -10,7 +10,7 @@ namespace Weary
         private static InputState latest;
         private static Dictionary<string, InputKey> keyMaps = new Dictionary<string, InputKey>();
 
-        public static void LoadConfig(string jsonData)
+        public static void LoadKeyMaps(string jsonData)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace Weary
             }
         }
 
-        public static string SaveConfig()
+        public static string SaveKeyMaps()
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Weary
             }
         }
 
-        public static void Update(DeltaTime delta)
+        internal static void Update(DeltaTime delta)
         {
             latest = InputServer.Global.GetInputState();
         }

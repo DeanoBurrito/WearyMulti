@@ -43,7 +43,7 @@ namespace Weary
 
                     DeltaTime fixedDt = new DeltaTime(fixedUpdateStep);
                     if (keepRunning)
-                        FixedUpdate(fixedDt);
+                        FixedUpdateInternal(fixedDt);
                     fixedStepsTaken++;
                 }
 
@@ -127,6 +127,14 @@ namespace Weary
         protected virtual void FixedUpdate(DeltaTime delta)
         { }
 
+        protected virtual void FixedUpdateInternal(DeltaTime delta)
+        {
+            FixedUpdate(delta);
+        }
+
+        protected virtual void Render(RenderTarget target)
+        { }
+
         private void RenderInternal(RenderTarget target)
         {
             target.Clear(Color.Black);
@@ -136,9 +144,6 @@ namespace Weary
 
             target.Display();
         }
-
-        protected virtual void Render(RenderTarget target)
-        { }
 
         protected virtual void HandleExitRequest()
         { }

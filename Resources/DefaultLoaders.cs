@@ -3,7 +3,7 @@ using Weary.Rendering;
 
 namespace Weary.Resources
 {
-    internal class DefaultLoaders
+    internal static class DefaultLoaders
     {
         public static void RegisterDefaultLoaders()
         {
