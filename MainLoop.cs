@@ -76,7 +76,6 @@ namespace Weary
             Log.WriteLine("--- Initializing main loop.");
 
             ResourceManager.Init();
-            Input.Init(true);
             new SFWindowServer().Init();
             new SFInputServer().Init();
             new SFRenderServer().Init();

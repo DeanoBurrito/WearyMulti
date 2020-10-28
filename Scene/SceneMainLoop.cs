@@ -26,9 +26,9 @@ namespace Weary.Scene
 
         protected override void Update(DeltaTime delta)
         {
-            if (Input.IsKeyReleased("F1"))
+            if (Input.IsKeyReleased(InputKey.F1))
                 renderVisualizer = !renderVisualizer;
-            if (Input.IsKeyReleased("F2"))
+            if (Input.IsKeyReleased(InputKey.F2))
             {
                 string jsonData = SceneTree.SaveToJson(tree);
                 File.WriteAllText("_Data/Scenes/SavedDebugScene.json", jsonData);

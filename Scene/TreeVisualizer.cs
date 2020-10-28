@@ -35,13 +35,13 @@ namespace Weary.Scene
 
         public void Update(DeltaTime delta)
         {
-            if (Input.IsKeyPressed("Up"))
+            if (Input.IsKeyPressed(InputKey.ArrowUp))
                 MoveUp();
-            else if (Input.IsKeyPressed("Down"))
+            else if (Input.IsKeyPressed(InputKey.ArrowDown))
                 MoveDown();
-            else if (Input.IsKeyPressed("Left"))
+            else if (Input.IsKeyPressed(InputKey.ArrowLeft))
                 MoveLeft();
-            else if (Input.IsKeyPressed("Right"))
+            else if (Input.IsKeyPressed(InputKey.ArrowRight))
                 MoveRight();
         }
 

@@ -75,32 +75,32 @@ namespace Weary.Debug
         {
             UpdateTerminalHistory();
 
-            if (Input.IsKeyReleased("F10"))
+            if (Input.IsKeyReleased(InputKey.F10))
                 isVisible = !isVisible;
 
             if (!isVisible)
                 return;
 
-            if (Input.IsKeyReleased("Return"))
+            if (Input.IsKeyReleased(InputKey.Enter))
             {
                 terminalHistory.Add(">" + currentLine.ToString());
                 HandleCommand(currentLine.ToString());
                 currentLine.Clear();
             }
-            else if (Input.IsKeyReleased("Backspace"))
+            else if (Input.IsKeyReleased(InputKey.Backspace))
             {
                 if (currentLine.Length > 0)
                     currentLine = currentLine.Remove(currentLine.Length - 1, 1);
             }
 
-            int scrollMod = Input.IsKeyDown("LShift") ? 5 : 1;
-            if (Input.IsKeyReleased("Down"))
+            int scrollMod = Input.IsKeyDown(InputKey.ShiftLeft) ? 5 : 1;
+            if (Input.IsKeyReleased(InputKey.ArrowDown))
             {
                 scrollOffset -= scrollMod;
                 if (scrollOffset < 0)
                     scrollOffset = 0;
             }
-            else if (Input.IsKeyReleased("Up"))
+            else if (Input.IsKeyReleased(InputKey.ArrowUp))
             {
                 scrollOffset += scrollMod;
                 if (scrollOffset >= terminalHistory.Count)
