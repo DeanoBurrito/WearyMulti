@@ -52,6 +52,7 @@ namespace Weary
 
             ResourceManager.Init();
             Input.Init(true);
+            new SFInputServer().Init();
             new SFWindowServer().Init();
             new SFRenderServer().Init();
 
@@ -77,6 +78,7 @@ namespace Weary
             Deinit();
 
             RenderServer.Global.Deinit();
+            InputServer.Global.Deinit();
             WindowServer.Global.Deinit();
             ResourceManager.Global.Deinit();
         }

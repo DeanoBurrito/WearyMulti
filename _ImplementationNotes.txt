@@ -4,3 +4,5 @@ F2 will save the current scene (as it is in the current frame) to disk under _da
 F10 will bring up the debug terminal (using any derived MainLoop)
 
 When overriding SceneNode, be sure to call base.To*()/base.From*() in order to read header data, otherwise node construction will not be complete
+
+InputState contains mouse position as joystick axis 0, axis 1/2 are mouse x/y relative movement (useful for simulating a joystick)
