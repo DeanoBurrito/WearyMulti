@@ -11,19 +11,21 @@ namespace Weary.Resources
         public readonly ulong fileStart;
         public readonly ulong fileLength;
         public readonly bool canUnload;
+        public readonly bool canStore;
         public readonly string loaderExt;
         public readonly ImmutableDictionary<string, string> customAttribs;
         
         internal bool loaded = false;
         internal ulong loadedId = 0;
 
-        internal ResourceHeader(string name, string file, ulong startPos, ulong length, bool allowUnload, string loaderType, Dictionary<string, string> customData)
+        internal ResourceHeader(string name, string file, ulong startPos, ulong length, bool allowUnload, bool allowStore, string loaderType, Dictionary<string, string> customData)
         {
             resourceName = name;
             filename = file;
             fileStart = startPos;
             fileLength = length;
             canUnload = allowUnload;
+            canStore = allowStore;
             loaderExt = loaderType;
 
             customAttribs = customData == null ? ImmutableDictionary.Create<string, string>() : customData.ToImmutableDictionary();

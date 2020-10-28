@@ -91,12 +91,12 @@ namespace Weary.Resources
             return null; //If we reach here, LoadResource() should have emitted an error anyway.
         }
 
-        public T CreateResource<T>(string resourceName, byte[] initData = null) where T : ResourceBase
+        public T CreateResource<T>(string resourceName, byte[] initData = null, bool canStore = false) where T : ResourceBase
         {
-            return (T)CreateResource(typeof(T), resourceName, initData);
+            return (T)CreateResource(typeof(T), resourceName, initData, canStore);
         }
 
-        public ResourceBase CreateResource(Type t, string resourceName, byte[] initData = null)
+        public ResourceBase CreateResource(Type t, string resourceName, byte[] initData = null, bool canStore = false)
         {
             if (!resCreatorMaps.ContainsKey(t))
             {
@@ -108,8 +108,8 @@ namespace Weary.Resources
                 Log.WriteError("Cannot create resource, name is already in use: " + resourceName);
                 return null;
             }
-            
-            ResourceHeader createdHeader = new ResourceHeader(resourceName, string.Empty, 0, 0, false, t.Name, new Dictionary<string, string>());
+
+            ResourceHeader createdHeader = new ResourceHeader(resourceName, string.Empty, 0, 0, false, canStore, t.Name, new Dictionary<string, string>());
             headers.Add(createdHeader.resourceName, createdHeader);
 
             ResourceBase resource = resCreatorMaps[t].Invoke(this);
@@ -362,7 +362,7 @@ namespace Weary.Resources
             }
 
             filename = Path.Combine(relativePath, filename);
-            ResourceHeader header = new ResourceHeader(name, filename, fileStart, fileLen, canUnload, loaderExt, attribs);
+            ResourceHeader header = new ResourceHeader(name, filename, fileStart, fileLen, canUnload, true, loaderExt, attribs);
             headers.Add(header.resourceName, header);
             return;
 
@@ -422,7 +422,7 @@ namespace Weary.Resources
 
             if (resourceList == null)
                 resourceList = headers.Keys.ToArray();
-            
+
             try
             {
                 using (MemoryStream memFile = new MemoryStream())
@@ -443,7 +443,7 @@ namespace Weary.Resources
         }
 
         private void WriteManifest(Utf8JsonWriter writer, string[] headerNames, string relativePath)
-        { 
+        {
             writer.WriteStartObject();
 
             //TODO: implement a way to get these values programmatically
@@ -457,7 +457,12 @@ namespace Weary.Resources
             {
                 if (!headers.ContainsKey(headerStr))
                     continue;
-                
+                if (!headers[headerStr].canStore)
+                {
+                    Log.WriteError("Header " + headerStr + " is marked as runtime only (canStore=false).");
+                    continue;
+                }
+
                 WriteManifestEntry(writer, headers[headerStr], relativePath);
             }
             writer.WriteEndArray();
