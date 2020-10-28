@@ -81,7 +81,7 @@ namespace Weary.Backends.SF
 
         public override string GetServerInfo()
         {
-            return "Weary (SFML based) RenderServer. " + renderTargets.Count + " rendertargets, 0 textures.";
+            return "Weary (SFML based) RenderServer. " + renderTargets.Count + " rendertargets, " + textures.Count + " textures.";
         }
 
         public override void DrawShape(Rendering.RenderTarget target, ShapeBase shape, RenderParams renderParams)
