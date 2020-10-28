@@ -1,4 +1,4 @@
-using System;
+using System.Diagnostics;
 using Weary.Backends.SF;
 using Weary.Rendering;
 using Weary.Debug;
@@ -9,30 +9,55 @@ namespace Weary
     public class MainLoop
     {
         private readonly float fixedUpdateStep = 1f / 60f;
+        private readonly float renderStepMin = 1f / 120f;
+        private readonly int maxFixedPerCycle = 5;
         private bool keepRunning = true;
+        private Stopwatch mainClock;
         private Window mainWindow;
         private RenderTarget mainRenderTarget;
         private DebugTerminal debugTerminal;
 
         public MainLoop()
-        {}
+        { }
 
         public void Run()
         {
             InitInternal();
-            
+
+            float fixedDelta = 0f;
+            float lastRenderDelta = 0f;
             while (keepRunning)
             {
-                DeltaTime delta = new DeltaTime(fixedUpdateStep);
+                float localDelta = (float)mainClock.Elapsed.TotalSeconds;
+                fixedDelta += localDelta;
+                mainClock.Restart();
+                DeltaTime flexDelta = new DeltaTime(localDelta);
+                UpdateInternal(flexDelta);
 
-                UpdateInternal(delta);
-                if (keepRunning)
-                    FixedUpdate(delta);
-                if (keepRunning)
-                    RenderInternal(mainRenderTarget);
+                int fixedStepsTaken = 0;
+                while (fixedDelta >= fixedUpdateStep && fixedStepsTaken < maxFixedPerCycle)
+                {
+                    fixedDelta -= fixedUpdateStep;
+                    if (fixedDelta < float.Epsilon * 2f)
+                        fixedDelta = 0f; //if we're getting really small values left over, discard them. TODO: better solution to precision errors
 
-                //TODO: hack, fix this
-                System.Threading.Thread.Sleep((int)(fixedUpdateStep * 1000f));
+                    DeltaTime fixedDt = new DeltaTime(fixedUpdateStep);
+                    if (keepRunning)
+                        FixedUpdate(fixedDt);
+                    fixedStepsTaken++;
+                }
+
+                lastRenderDelta += localDelta;
+                if (lastRenderDelta >= renderStepMin)
+                {
+                    //do rendering
+                    lastRenderDelta -= renderStepMin;
+                    if (lastRenderDelta < float.Epsilon * 2f)
+                        lastRenderDelta = 0f;
+
+                    if (keepRunning)
+                        RenderInternal(mainRenderTarget);
+                }
             }
 
             DeinitInternal();
@@ -44,7 +69,7 @@ namespace Weary
         }
 
         protected virtual void Init()
-        {}
+        { }
 
         private void InitInternal()
         {
@@ -65,11 +90,13 @@ namespace Weary
             debugTerminal = new DebugTerminal();
             (WindowServer.Global as SFWindowServer).GetRenderWindow(mainWindow).TextEntered += debugTerminal.HandleWindowTextEntered;
 
+            mainClock = new Stopwatch();
+
             Init();
         }
 
         protected virtual void Deinit()
-        {}
+        { }
 
         private void DeinitInternal()
         {
@@ -84,7 +111,7 @@ namespace Weary
         }
 
         protected virtual void Update(DeltaTime delta)
-        {}
+        { }
 
         private void UpdateInternal(DeltaTime delta)
         {
@@ -94,15 +121,15 @@ namespace Weary
 
             Input.Update(delta);
             debugTerminal.Update(delta);
-            
+
             Update(delta);
         }
 
         protected virtual void FixedUpdate(DeltaTime delta)
-        {}
+        { }
 
         private void RenderInternal(RenderTarget target)
-        {   
+        {
             target.Clear(Color.Black);
 
             Render(target);
@@ -112,10 +139,10 @@ namespace Weary
         }
 
         protected virtual void Render(RenderTarget target)
-        {}
+        { }
 
         protected virtual void HandleExitRequest()
-        {}
+        { }
 
         private void HandleExitInternal(object sender)
         {
