@@ -11,6 +11,7 @@ namespace Weary.Backends.SF
 
         private Dictionary<ulong, (Rendering.RenderTarget wryTarget, SFML.Graphics.RenderTarget sfTarget)> renderTargets = new Dictionary<ulong, (RenderTarget, SFML.Graphics.RenderTarget)>();
         private Dictionary<ulong, (Rendering.Texture wryTexture, SFML.Graphics.Texture sfTexture)> textures = new Dictionary<ulong, (Texture wryTexture, SFML.Graphics.Texture sfTexture)>();
+        private Dictionary<ulong, (Rendering.Font wryFont, SFML.Graphics.Font sfFont)> fonts = new Dictionary<ulong, (Font wryFont, SFML.Graphics.Font sfFont)>();
 
         public override void Init()
         {
@@ -34,6 +35,10 @@ namespace Weary.Backends.SF
             foreach (var pair in textures)
             {
                 DestroyTexture(pair.Value.wryTexture);
+            }
+            foreach (var pair in fonts)
+            {
+                DestroyFont(pair.Value.wryFont);
             }
 
             HandleEvents();
@@ -60,6 +65,14 @@ namespace Weary.Backends.SF
 
                     sfTexture.Dispose();
                     sfTexture = null;
+                }
+                else if (destructionPending[i].wryRes is Rendering.Font wryFont)
+                {
+                    SFML.Graphics.Font sfFont = (SFML.Graphics.Font)destructionPending[i].sfRes;
+                    Log.WriteLine("SFML font destroyed: rid=" + wryFont.rid);
+
+                    sfFont.Dispose();
+                    sfFont = null;
                 }
             }
             destructionPending.Clear();
@@ -135,7 +148,10 @@ namespace Weary.Backends.SF
             if (sfTarget == null)
                 return;
 
-            SFML.Graphics.Text sfText = new SFML.Graphics.Text(text, font.resource, fontSize);
+            SFML.Graphics.Font sfFont = GetValidFont(font);
+            if (sfFont == null)
+                return;
+            SFML.Graphics.Text sfText = new SFML.Graphics.Text(text, sfFont, fontSize);
             sfText.Position = new SFML.System.Vector2f(renderParams.position.x, renderParams.position.y);
             sfText.FillColor = GetSfmlColor(renderParams.tintColor);
 
@@ -167,15 +183,6 @@ namespace Weary.Backends.SF
             sfSprite.Color = GetSfmlColor(renderParams.tintColor);
             
             sfTarget.Draw(sfSprite);
-        }
-
-        public override Vector2f GetTextBounds(Font font, string text, uint fontSize)
-        {
-            SFML.Graphics.Text sfText = new SFML.Graphics.Text(text, font.resource, fontSize);
-            SFML.Graphics.FloatRect bounds = sfText.GetLocalBounds();
-            sfText.Dispose();
-
-            return new Vector2f(bounds.Width, bounds.Height);
         }
 
         public override void InitTexture(Texture texture, uint w, uint h)
@@ -327,6 +334,44 @@ namespace Weary.Backends.SF
             }
         }
 
+        public override void InitFont(Font font, byte[] data)
+        {
+            if (fonts.ContainsKey(font.rid))
+            {
+                Log.WriteError("Invalid font to init: this font is already bound to existing data. Please destroy fully and recreate before reuse.");
+                return;
+            }
+
+            SFML.Graphics.Font sfFont = new SFML.Graphics.Font(data);
+            fonts.Add(font.rid, (font, sfFont));
+
+            Log.WriteLine("New SFML font initialized: rid=" + font.rid);
+        }
+
+        public override void DestroyFont(Font font)
+        {
+            SFML.Graphics.Font sfFont = GetValidFont(font);
+            if (sfFont == null)
+                return;
+            
+            Log.WriteLine("SFML font is queued for destruction. rid=" + font.rid);
+            fonts.Remove(font.rid);
+            destructionPending.Add((font, sfFont));
+        }
+
+        public override Vector2f GetFontBounds(Font font, string text, uint fontSize)
+        {
+            SFML.Graphics.Font sfFont =  GetValidFont(font);
+            if (sfFont == null)
+                return Vector2f.Zero;
+            
+            SFML.Graphics.Text sfText = new SFML.Graphics.Text(text, sfFont, fontSize);
+            SFML.Graphics.FloatRect bounds = sfText.GetLocalBounds();
+            sfText.Dispose();
+
+            return new Vector2f(bounds.Width, bounds.Height);
+        }
+
         private SFML.Graphics.Texture GetValidTexture(Rendering.Texture texture)
         {
             if (texture == null)
@@ -355,6 +400,21 @@ namespace Weary.Backends.SF
                 return null;
             }
             return renderTargets[target.rid].sfTarget;
+        }
+
+        private SFML.Graphics.Font GetValidFont(Rendering.Font font)
+        {
+            if (font == null)
+            {
+                Log.WriteError("Invalid font for operation: target is null");
+                return null;
+            }
+            else if (!fonts.ContainsKey(font.rid))
+            {
+                Log.WriteError("Invalid font for operation: font is not owned by this render server.");
+                return null;
+            }
+            return fonts[font.rid].sfFont;
         }
 
         private SFML.Graphics.Color GetSfmlColor(Weary.Rendering.Color col)

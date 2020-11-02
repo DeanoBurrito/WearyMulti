@@ -164,7 +164,7 @@ namespace Weary.Debug
                 RenderParams cursorParams = new RenderParams();
                 cursorParams.tintColor = Color.White;
                 
-                Vector2f currLineBounds = RenderServer.Global.GetTextBounds(textFont.Get<Font>(), ">>> " +  currentLine.ToString(), textFontSize);
+                Vector2f currLineBounds = RenderServer.Global.GetFontBounds(textFont.Get<Font>(), ">>> " +  currentLine.ToString(), textFontSize);
                 cursorParams.position = new Vector2f(currLineBounds.x + 4f, currentLineY + (lineHeight - cursorHeight) / 2f);
                 renderTarget.DrawShape(cursorRect, cursorParams);
             }
