@@ -1,7 +1,8 @@
 using System;
 using System.IO;
+using Weary.Resources;
 
-namespace Weary.Resources
+namespace Weary.Rendering
 {
     public sealed class Font : ResourceBase
     {
