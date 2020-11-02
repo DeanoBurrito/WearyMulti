@@ -419,11 +419,7 @@ namespace Weary.Backends.SF
 
         private SFML.Graphics.Color GetSfmlColor(Weary.Rendering.Color col)
         {
-            float dr = MathF.Max(0f, MathF.Min(col.r * 255f, 255f));
-            float dg = MathF.Max(0f, MathF.Min(col.g * 255f, 255f));
-            float db = MathF.Max(0f, MathF.Min(col.b * 255f, 255f));
-            float da = MathF.Max(0f, MathF.Min(col.a * 255f, 255f));
-            return new SFML.Graphics.Color((byte)dr, (byte)dg, (byte)db, (byte)da);
+            return new SFML.Graphics.Color(col.r, col.g, col.b, col.a);
         }
     }
 }

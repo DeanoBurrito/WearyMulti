@@ -157,7 +157,7 @@ namespace Weary.Scene
             textParams.position = new Vector2f(hScrollOffset, vScrollOffset) + cursorPosition;
 
             if (node.uuid == selectedNode)
-                textParams.tintColor = new Color(0f, 0.5f, 1f);
+                textParams.tintColor = new Color(0, 127, 255);
             else
                 textParams.tintColor = Color.White;
 

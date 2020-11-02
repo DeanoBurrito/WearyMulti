@@ -123,7 +123,7 @@ namespace Weary.Debug
             renderTarget.Clear(Color.Black);
 
             RenderParams bgRenderParams = new RenderParams();
-            bgRenderParams.tintColor = new Color(0.1f, 0.1f, 0.1f);
+            bgRenderParams.tintColor = Color.CornflowerBlue;
             bgRenderParams.position = Vector2f.Zero;
 
             backgroundRect.width = renderTarget.width;
@@ -144,7 +144,7 @@ namespace Weary.Debug
             for (int i = historyShowStart; i < historyShowEnd; i++)
             {
                 if (i == historyShowStart && historyShowStart > 0)
-                    textLineParams.tintColor = new Color(0.5f, 0.5f, 0.5f);
+                    textLineParams.tintColor = new Color(127, 127, 127);
                 else if (terminalHistory[i].Contains("[ERROR]"))
                     textLineParams.tintColor = Color.Red;
                 else
