@@ -16,7 +16,6 @@ namespace Weary.Resources
 
         internal static void Init()
         {
-            ResTerminalCommands.RegisterCommands();
             DefaultLoaders.RegisterDefaultLoaders();
 
             Global = new ResourceManager();

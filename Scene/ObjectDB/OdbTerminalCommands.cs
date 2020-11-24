@@ -6,6 +6,7 @@ namespace Weary.Scene.ObjectDB
 {
     internal static class OdbTerminalCommands
     {
+        [DebugCommandLoader]
         internal static void RegisterCommands()
         {
             DebugTerminal.RegisterCommand("lsdb", "Displays the current contents of the ObjectDB.", LsDb);

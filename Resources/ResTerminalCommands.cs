@@ -6,6 +6,7 @@ namespace Weary.Resources
 {
     internal class ResTerminalCommands
     {
+        [DebugCommandLoader]
         internal static void RegisterCommands()
         {
             DebugTerminal.RegisterCommand("lsmanifest", "Shows the current resource manager manifest.", LsManifest);

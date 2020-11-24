@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using System.IO;
+using System.Reflection;
 using Weary.Resources;
 using Weary.Rendering;
 
@@ -44,6 +45,7 @@ namespace Weary.Debug
         internal DebugTerminal()
         {
             BuiltInCommands.Init();
+            ScanAndPopulateCommands();
 
             byte[] renderTargetInitData;
             RenderTarget windowRt = (RenderTarget)ResourceManager.Global.GetResource("Runtime/WindowRenderTarget");
@@ -123,7 +125,7 @@ namespace Weary.Debug
             renderTarget.Clear(Color.Black);
 
             RenderParams bgRenderParams = new RenderParams();
-            bgRenderParams.tintColor = Color.CornflowerBlue;
+            bgRenderParams.tintColor = new Color(0x303030FFu);
             bgRenderParams.position = Vector2f.Zero;
 
             backgroundRect.width = renderTarget.width;
@@ -198,6 +200,27 @@ namespace Weary.Debug
 
             if (terminalHistory.Count > maxHistoryLength)
                 terminalHistory.RemoveRange(0, terminalHistory.Count - maxHistoryLength);
+        }
+
+        private void ScanAndPopulateCommands()
+        {
+            Assembly[] loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly asm in loadedAssemblies)
+            {
+                if (asm.FullName.Contains("System") || asm.FullName.Contains("Microsoft"))
+                    continue;
+
+                foreach (Type asmType in asm.GetTypes())
+                {
+                    foreach (MethodInfo method in asmType.GetMethods(BindingFlags.Static | BindingFlags.NonPublic))
+                    {
+                        if (method.GetCustomAttribute<DebugCommandLoaderAttribute>() != null)
+                        {
+                            method.Invoke(null, null);
+                        }
+                    }
+                }
+            }
         }
 
         private void HandleCommand(string input)

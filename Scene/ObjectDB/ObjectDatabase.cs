@@ -12,7 +12,6 @@ namespace Weary.Scene.ObjectDB
 
         internal static void Init()
         {
-            OdbTerminalCommands.RegisterCommands();
             Global = new ObjectDatabase(typeof(SceneNode));
         }
 
