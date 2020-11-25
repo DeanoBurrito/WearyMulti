@@ -17,6 +17,7 @@ namespace Weary.Resources
         
         internal bool loaded = false;
         internal ulong loadedId = 0;
+        internal List<string> manifests;
 
         internal ResourceHeader(string name, string file, ulong startPos, ulong length, bool allowUnload, bool allowStore, string loaderType, Dictionary<string, string> customData)
         {
@@ -29,6 +30,7 @@ namespace Weary.Resources
             loaderExt = loaderType;
 
             customAttribs = customData == null ? ImmutableDictionary.Create<string, string>() : customData.ToImmutableDictionary();
+            manifests = new List<string>();
         }
 
         public override string ToString()

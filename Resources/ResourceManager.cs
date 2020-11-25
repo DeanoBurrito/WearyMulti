@@ -127,7 +127,7 @@ namespace Weary.Resources
         public void PreloadResources(string[] resourceList)
         { throw new NotImplementedException(); } //TODO: have this run on a background thread, and return a task-like object that can querry the loading status
 
-        public void UnloadResource(string resourceName)
+        public void UnloadResource(string resourceName, bool force = false)
         {
             if (!headers.ContainsKey(resourceName))
             {
@@ -139,6 +139,17 @@ namespace Weary.Resources
             {
                 Log.WriteError("Cannot unload resource, it's currently not loaded. Name=" + resourceName);
                 return;
+            }
+
+            if (!header.canUnload)
+            {
+                if (!force)
+                {
+                    Log.WriteError("Resource marked as never-unload, cannot unload. Name=" + resourceName);
+                    return;
+                }
+                else
+                    Log.WriteLine("Resource marked as never-unload, but force was specified. This may lead to cascading errors. Name=" + resourceName);
             }
 
             ResourceBase res = GetResource(header.loadedId);
@@ -237,6 +248,44 @@ namespace Weary.Resources
             return new List<ResourceHeader>(hArr);
         }
 
+        public void UnloadManifest(string name, bool forceUnload = false)
+        {
+            if (!manifestHeaders.ContainsKey(name))
+            {
+                Log.WriteError($"Cannot unload manifest, none loaded with name {name}");
+                return;
+            }
+
+            ManifestHeader header = manifestHeaders[name];
+            manifestHeaders.Remove(name);
+
+            for (int i = 0; i < header.headerNames.Length; i++)
+            {
+                ResourceHeader resHeader = headers[header.headerNames[i]];
+                
+                if (!resHeader.canUnload && !forceUnload)
+                    continue; //cant unload it anyway, so leave it as is.
+
+                if (resHeader.loaded)
+                    UnloadResource(resHeader.resourceName);
+                
+                if (resHeader.manifests.Count == 1 && resHeader.manifests[0] == header.name)
+                {
+                    //resource is only part of this manifest, we can safely remove the header too
+                    headers.Remove(resHeader.resourceName);
+                    Log.WriteLine($"Unloaded manifest entry {header.name}->{resHeader.resourceName}");
+                }
+                else
+                {
+                    resHeader.manifests.Remove(header.name);
+                    Log.WriteLine($"Manifest entry {header.name}->{resHeader.resourceName} is loaded by {resHeader.manifests.Count} other manifests.");
+                }
+            }
+
+            Log.WriteLine("Successfully unloaded manifest and any exclusive resources: " + header.name);
+            header = null;
+        }
+
         public void LoadManifestText(string filename)
         {
             if (!File.Exists(filename))
@@ -301,13 +350,13 @@ namespace Weary.Resources
                 packageAuthor = authorProp.GetString();
             if (jroot.TryGetProperty("Version", out JsonElement versionProp))
                 packageVersion = new Version(versionProp.GetString());
-            
+
             if (manifestHeaders.ContainsKey(packageName))
             {
                 Log.WriteError($"Manifest with name {packageName} is already loaded. Aborting read operation.");
                 return;
             }
-            
+
             Log.WriteLine($"Loading manifest: {packageName} by {packageAuthor} (v {packageVersion.ToString(3)}), {packageDesc}");
 
             string relativePath = Path.GetRelativePath(Environment.CurrentDirectory, filename);
@@ -318,6 +367,10 @@ namespace Weary.Resources
             foreach (JsonElement ele in resElement.EnumerateArray())
             {
                 ProcessManifestEntry(ele, relativePath, ref validResHeaders);
+
+                ResourceHeader lastHeader = headers.LastOrDefault().Value;
+                if (lastHeader != null && !lastHeader.manifests.Contains(packageName)) //check is necessary since an entry can be discarded if malformed.
+                    lastHeader.manifests.Add(packageName);
             }
 
             ManifestHeader manifestHeader = new ManifestHeader(packageName, packageAuthor, packageDesc, packageVersion, validResHeaders.ToArray(), filename);
@@ -397,7 +450,7 @@ namespace Weary.Resources
                 Log.WriteError("Attempted to save text manifest, was passed a null header. Aborting write.");
                 return;
             }
-            
+
             if (File.Exists(header.fileLocation))
             {
                 if (enableOverwrite)
@@ -433,7 +486,7 @@ namespace Weary.Resources
                 Log.WriteError("Attempted to save binary manifest, was passed a null header. Aborting write.");
                 return;
             }
-            
+
             if (File.Exists(header.fileLocation))
             {
                 if (enableOverwrite)
