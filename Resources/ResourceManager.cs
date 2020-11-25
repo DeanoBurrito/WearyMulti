@@ -48,6 +48,7 @@ namespace Weary.Resources
 
         Dictionary<ulong, ResourceBase> resources;
         Dictionary<string, ResourceHeader> headers;
+        Dictionary<string, ManifestHeader> manifestHeaders;
         Dictionary<ulong, string> ridToHeaderMap;
 
         public ResourceManager()
@@ -55,6 +56,7 @@ namespace Weary.Resources
             ridGenerator = new UuidManager();
             resources = new Dictionary<ulong, ResourceBase>();
             headers = new Dictionary<string, ResourceHeader>();
+            manifestHeaders = new Dictionary<string, ManifestHeader>();
             ridToHeaderMap = new Dictionary<ulong, string>();
         }
 
@@ -247,9 +249,7 @@ namespace Weary.Resources
             {
                 string manifestText = File.ReadAllText(filename);
 
-                string relativePath = Path.GetRelativePath(Environment.CurrentDirectory, filename);
-                relativePath = Path.GetDirectoryName(relativePath);
-                ProcessManifest(manifestText, relativePath);
+                ProcessManifest(manifestText, filename);
             }
             catch (Exception e)
             {
@@ -276,9 +276,7 @@ namespace Weary.Resources
                     manifestText = reader.ReadString();
                 }
 
-                string relativePath = Path.GetRelativePath(Environment.CurrentDirectory, filename);
-                relativePath = Path.GetDirectoryName(relativePath);
-                ProcessManifest(manifestText, relativePath);
+                ProcessManifest(manifestText, filename);
             }
             catch (Exception e)
             {
@@ -286,7 +284,7 @@ namespace Weary.Resources
             }
         }
 
-        private void ProcessManifest(string data, string relativePath)
+        private void ProcessManifest(string data, string filename)
         {
             JsonDocument jdoc = JsonDocument.Parse(data);
             JsonElement jroot = jdoc.RootElement;
@@ -303,18 +301,31 @@ namespace Weary.Resources
                 packageAuthor = authorProp.GetString();
             if (jroot.TryGetProperty("Version", out JsonElement versionProp))
                 packageVersion = new Version(versionProp.GetString());
+            
+            if (manifestHeaders.ContainsKey(packageName))
+            {
+                Log.WriteError($"Manifest with name {packageName} is already loaded. Aborting read operation.");
+                return;
+            }
+            
             Log.WriteLine($"Loading manifest: {packageName} by {packageAuthor} (v {packageVersion.ToString(3)}), {packageDesc}");
 
+            string relativePath = Path.GetRelativePath(Environment.CurrentDirectory, filename);
+            relativePath = Path.GetDirectoryName(relativePath);
+
             JsonElement resElement = jroot.GetProperty("Resources");
+            List<string> validResHeaders = new List<string>();
             foreach (JsonElement ele in resElement.EnumerateArray())
             {
-                ProcessManifestEntry(ele, relativePath);
+                ProcessManifestEntry(ele, relativePath, ref validResHeaders);
             }
 
-            Log.WriteLine("Manifest " + packageName + " loaded. " + headers.Count + " headers processed.");
+            ManifestHeader manifestHeader = new ManifestHeader(packageName, packageAuthor, packageDesc, packageVersion, validResHeaders.ToArray(), filename);
+            manifestHeaders.Add(manifestHeader.name, manifestHeader);
+            Log.WriteLine("Manifest " + manifestHeader.name + " loaded. " + manifestHeader.headerNames.Length + " headers processed.");
         }
 
-        private void ProcessManifestEntry(JsonElement entry, string relativePath)
+        private void ProcessManifestEntry(JsonElement entry, string relativePath, ref List<string> processedEntries)
         {
             string name = "<name missing>";
             string filename;
@@ -367,6 +378,7 @@ namespace Weary.Resources
             filename = Path.Combine(relativePath, filename);
             ResourceHeader header = new ResourceHeader(name, filename, fileStart, fileLen, canUnload, true, loaderExt, attribs);
             headers.Add(header.resourceName, header);
+            processedEntries.Add(header.resourceName);
             return;
 
         CRITICAL_LOADER_MISSING:
