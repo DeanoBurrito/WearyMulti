@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Weary.Debug;
 
 namespace Weary.Resources
@@ -35,7 +36,14 @@ namespace Weary.Resources
             foreach (ResourceHeader h in headers)
                 headerNames.Add(h.resourceName);
             
-            ResourceManager.Global.SaveManifestText("_Data/DebugManifest.json", headerNames.ToArray(), true);
+            ManifestHeader header = new ManifestHeader(
+                "DebugManifest", 
+                "Debug Terminal", 
+                "Created via the debug terminal command 'savemanifest'", 
+                new Version(1, 0, 0), 
+                ResourceManager.Global.GetHeaders().Select(h => h.resourceName).ToArray(),
+                "_Data/DebugManifest.json");
+            ResourceManager.Global.SaveManifestText(header, true);
             Log.WriteLine("Current manifest saved to _Data/DebugManifest.json");
         }
 

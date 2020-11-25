@@ -28,7 +28,7 @@ namespace Weary.Resources
             {
                 if (!ext.StartsWith('.'))
                 {
-                    Log.WriteError("Cannot attach resource with invalid file extension (not bigging with dot): " + ext);
+                    Log.WriteError("Cannot attach resource with invalid file extension (not starting with dot): " + ext);
                     continue;
                 }
                 if (resLoaderMaps.ContainsKey(ext))
@@ -354,6 +354,10 @@ namespace Weary.Resources
                 }
             }
 
+            //validate the required loader for this resource is known
+            if (!resLoaderMaps.ContainsKey(loaderExt))
+                goto CRITICAL_LOADER_MISSING;
+
             if (headers.ContainsKey(name))
             {
                 Log.WriteError($"Cannot added manifest entry {name}, an entry already exists with this name.");
@@ -365,36 +369,43 @@ namespace Weary.Resources
             headers.Add(header.resourceName, header);
             return;
 
+        CRITICAL_LOADER_MISSING:
+            Log.WriteError($"Manifest entry {name} ({filename}) requires resource loader {loaderExt}, which is unknown to this resource manager.");
+            return;
+
         CRITICAL_DETAIL_MISSING:
             Log.WriteError($"Missing critical element for manifest entry: " + name + ". Entry is being dropped (but will remain in file).");
             return;
         }
 
-        public void SaveManifestText(string outputName, string[] resourceList, bool enableOverwrite = false)
+        public void SaveManifestText(ManifestHeader header, bool enableOverwrite = false)
         {
-            if (File.Exists(outputName))
+            if (header == null)
+            {
+                Log.WriteError("Attempted to save text manifest, was passed a null header. Aborting write.");
+                return;
+            }
+            
+            if (File.Exists(header.fileLocation))
             {
                 if (enableOverwrite)
                 {
-                    Log.WriteLine("Manifest file " + outputName + " already exists. Overwriting with new.");
-                    File.Delete(outputName);
+                    Log.WriteLine("Manifest file " + header.fileLocation + " already exists. Overwriting with new.");
+                    File.Delete(header.fileLocation);
                 }
                 else
                 {
-                    Log.WriteError("Manifest file " + outputName + " already exists, and enableOverwrite is not enabled. Aborting write operation.");
+                    Log.WriteError("Manifest file " + header.fileLocation + " already exists, and enableOverwrite is not enabled. Aborting write operation.");
                     return;
                 }
             }
 
-            if (resourceList == null)
-                resourceList = headers.Keys.ToArray();
-
             try
             {
-                using (FileStream fstream = File.OpenWrite(outputName))
-                using (Utf8JsonWriter writer = new Utf8JsonWriter(fstream))
+                using (FileStream fstream = File.OpenWrite(header.fileLocation))
+                using (Utf8JsonWriter writer = new Utf8JsonWriter(fstream, new JsonWriterOptions() { Indented = true, SkipValidation = false }))
                 {
-                    WriteManifest(writer, resourceList, Path.GetDirectoryName(outputName) + Path.DirectorySeparatorChar);
+                    WriteManifest(writer, header, Path.GetDirectoryName(header.fileLocation) + Path.DirectorySeparatorChar);
                 }
             }
             catch (Exception e)
@@ -403,35 +414,38 @@ namespace Weary.Resources
             }
         }
 
-        public void SaveManifestBinary(string outputName, string[] resourceList, bool enableOverwrite = false)
+        public void SaveManifestBinary(ManifestHeader header, bool enableOverwrite = false)
         {
-            if (File.Exists(outputName))
+            if (header == null)
+            {
+                Log.WriteError("Attempted to save binary manifest, was passed a null header. Aborting write.");
+                return;
+            }
+            
+            if (File.Exists(header.fileLocation))
             {
                 if (enableOverwrite)
                 {
-                    Log.WriteLine("Manifest file " + outputName + " already exists. Overwriting with new.");
-                    File.Delete(outputName);
+                    Log.WriteLine("Manifest file " + header.fileLocation + " already exists. Overwriting with new.");
+                    File.Delete(header.fileLocation);
                 }
                 else
                 {
-                    Log.WriteError("Manifest file " + outputName + " already exists, and enableOverwrite is not enabled. Aborting write operation.");
+                    Log.WriteError("Manifest file " + header.fileLocation + " already exists, and enableOverwrite is not enabled. Aborting write operation.");
                     return;
                 }
             }
-
-            if (resourceList == null)
-                resourceList = headers.Keys.ToArray();
 
             try
             {
                 using (MemoryStream memFile = new MemoryStream())
                 {
-                    using (Utf8JsonWriter writer = new Utf8JsonWriter(memFile))
+                    using (Utf8JsonWriter writer = new Utf8JsonWriter(memFile, new JsonWriterOptions() { Indented = true, SkipValidation = false }))
                     {
-                        WriteManifest(writer, resourceList, Path.GetDirectoryName(outputName) + Path.DirectorySeparatorChar);
+                        WriteManifest(writer, header, Path.GetDirectoryName(header.fileLocation) + Path.DirectorySeparatorChar);
                     }
 
-                    File.WriteAllBytes(outputName, memFile.ToArray());
+                    File.WriteAllBytes(header.fileLocation, memFile.ToArray());
                 }
 
             }
@@ -441,18 +455,17 @@ namespace Weary.Resources
             }
         }
 
-        private void WriteManifest(Utf8JsonWriter writer, string[] headerNames, string relativePath)
+        private void WriteManifest(Utf8JsonWriter writer, ManifestHeader header, string relativePath)
         {
             writer.WriteStartObject();
 
-            //TODO: implement a way to get these values programmatically
-            writer.WriteString("Name", "Coming soon!");
-            writer.WriteString("Description", "Coming soon!");
-            writer.WriteString("Author", "Coming soon!");
-            writer.WriteString("Version", "0.0.0");
+            writer.WriteString("Name", header.name);
+            writer.WriteString("Description", header.description);
+            writer.WriteString("Author", header.author);
+            writer.WriteString("Version", header.version.ToString(3));
 
             writer.WriteStartArray("Resources");
-            foreach (string headerStr in headerNames)
+            foreach (string headerStr in header.headerNames)
             {
                 if (!headers.ContainsKey(headerStr))
                     continue;
