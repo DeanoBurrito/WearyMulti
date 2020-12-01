@@ -66,15 +66,17 @@ namespace Weary.Scene.ObjectDB
             }
 
             Log.WriteLine($"OdbObject {obj.identifier} has {obj.fields.Count} fields and {obj.methods.Count} methods.");
+            string fieldPrefix = " FLD| ";
             foreach (OdbField field in obj.fields.Values)
             {
-                Log.WriteLine($"    | FIELD is={field.type} name={field.identifier}");
+                Log.WriteLine(fieldPrefix + field.type.Name + " " + field.identifier);
             }
 
+            string methodPrefix = " MTH| ";
             foreach (OdbMethod method in obj.methods.Values)
             {
                 string argsStr = string.Join<Type>(',', method.arguments);
-                Log.WriteLine($"    | METHOD rtns={(method.returnsData ? method.returnType.ToString() : "null")} name={method.identifier} args=({argsStr})");
+                Log.WriteLine(methodPrefix + (method.returnsData ? method.returnType.Name : "void") + " " + method.identifier + "(" + argsStr + ")");
             }
         }
 
